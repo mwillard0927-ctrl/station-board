@@ -1419,7 +1419,7 @@ function fmt12(t){if(!t)return null;let[h,m]=t.split(':');h=+h;return `${(h%12)|
 let focusG=null;
 document.addEventListener('click',e=>{const b=e.target.closest('.lg button');if(!b)return;const g=+b.dataset.fg;
   focusG=focusG===g?null:g;renderList();
-  if(focusG!=null){const f=document.querySelector('#rows .nb[data-g="'+g+'"]');if(f){const hd=[...document.querySelectorAll('header,#listBar')].filter(x=>getComputedStyle(x).position==='sticky'||getComputedStyle(x).position==='fixed').reduce((m,x)=>Math.max(m,x.getBoundingClientRect().bottom),0);const y=f.getBoundingClientRect().top+scrollY-hd-12;scrollTo({top:Math.max(0,y),behavior:'smooth'})}}else scrollTo({top:0,behavior:'smooth'});});
+  if(focusG!=null){const f=document.querySelector('#rows .nb[data-g="'+g+'"]')||document.querySelector('#rows .hint');if(f){const hd=[...document.querySelectorAll('header,#listBar')].filter(x=>getComputedStyle(x).position==='sticky'||getComputedStyle(x).position==='fixed').reduce((m,x)=>Math.max(m,x.getBoundingClientRect().bottom),0);const y=f.getBoundingClientRect().top+scrollY-hd-12;scrollTo({top:Math.max(0,y),behavior:'smooth'})}}else scrollTo({top:0,behavior:'smooth'});});
 function heavy(day,r){const L=(LOAD[day]||{})[r];if(!L)return null;const of=L.o.reduce((a,x)=>a+x[1],0);const w=[];if(L.t>250)w.push(L.t+' pkgs');if(of>=40)w.push(of+' overflow');return w.length?w:null}
 
 function parkMap(day,g){
@@ -1454,7 +1454,8 @@ function renderList(){
   let html='';
   if(focusG==null){html=list.map(d=>btn(d)).join('')}
   else{
-    [1,2,3,4].forEach(g=>{const P=parkMap(cur,String(g));const inG=list.filter(d=>gk(d)===g);if(!inG.length)return;
+    if(!list.some(d=>gk(d)===focusG))html+=`<p class="hint" style="grid-column:1/-1;font-weight:700">No ${focusG?'Prestage '+focusG:'Rescue'} drivers on this day</p>`;
+    [1,2,3,4,5].forEach(g=>{const P=parkMap(cur,String(g));const inG=list.filter(d=>gk(d)===g);if(!inG.length)return;
       const placed=P?Object.values(P.at):[];const cols=Math.max(4,P?P.cols:4);
       if(P&&cols===4){for(let r=1;r<=4;r++)for(let c=1;c<=4;c++){const x=placed.find(v=>v.r===r&&v.c===c);html+=x?btn(x.d,c===1?';grid-column-start:1':''):`<div class="nb-empty${g!==focusG?' dim':''}" style="--c:var(--g${g})${c===1?';grid-column-start:1':''}"></div>`}}
       else{inG.forEach((d,k)=>{html+=btn(d,k===0?';grid-column-start:1':'')})}
