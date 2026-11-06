@@ -80,6 +80,9 @@ dialog input{width:100%;font-size:26px;padding:12px;border-radius:12px;border:2p
 .stt{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;color:var(--ink);font-weight:700;cursor:pointer;margin-bottom:10px;text-align:left}
 .stt span{float:right;color:var(--acc)}
 .nb:active{transform:scale(.97)}
+.tc{cursor:pointer;transition:filter .2s,opacity .2s;-webkit-tap-highlight-color:transparent}.tc.off{filter:grayscale(1);opacity:.35}.tc.off .tn{text-decoration:line-through}
+.rp{grid-column:1/-1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}.rp-t{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);margin-bottom:6px}.rp-t b{color:var(--ink);font-size:16px}.rp-b{height:16px;background:var(--line);border-radius:8px;overflow:hidden}.rp-f{height:100%;background:linear-gradient(90deg,#16A34A,#22C55E);border-radius:8px;transition:width .4s}.rp-n{font-size:11px;color:var(--mute);margin-top:5px;text-align:center}
+
 </style>
 <header>
   <h1>Driver Route Sheet</h1>
@@ -1533,9 +1536,18 @@ function renderLoad(d){
   const ofp=L.o.reduce((a,x)=>a+x[1],0);const P=placeOF(L,d.r);
   {const hv=heavy(cur,d.r);document.getElementById('dHv').innerHTML=hv?'⚑ Heavy load: '+hv.join(' · '):''}
   document.getElementById('dLd').innerHTML=`Load: <b>${L.b.length}</b> bags · <b>${ofp}</b> overflow · <b>${L.t}</b> pkgs · <b>${L.c}</b> comm.`;
-  box.innerHTML=`  <h2>Bags + their overflow</h2><div class="bg3" style="grid-template-rows:repeat(${Math.ceil(L.b.length/2)},auto)">${L.b.map((b,i)=>{const c=b[1].split(' ')[0];const num=b[1].split(' ').slice(1).join(' ')||b[1];const col=COLORS[c]||'#999';const dk=c==='Yellow'||c==='White';const of=P.filter(x=>x.t===i);return `<div class="tc${dk?' dk':''}" style="background:${col}" title="${b[1]}"><div class="tr"><span class="ci">${i+1}</span><span class="tn">${num}</span><span class="pk">${b[2]}</span></div><div class="tm">${b[0]||'—'}</div>${of.length?`<div class="tof">${of.map(o=>`<span class="${o.k==='est'?'est':''}">OF ${o.z} ×${o.c}${o.k==='est'?'?':''}</span>`).join('')}</div>`:''}</div>`}).join('')}</div>
+  const ST=(TSTOPS[cur]||{})[d.r];const offK=i=>`rs|${cur}|${d.n}|toteOff|${i}`;const isOff=i=>{try{return localStorage.getItem(offK(i))==='1'}catch(e){return !!mem[offK(i)]}};
+  const unit=ST?'stops':'pkgs';const wt=L.b.map((b,i)=>ST?ST[i]:b[2]+P.filter(x=>x.t===i).reduce((a,x)=>a+x.c,0));const tot=wt.reduce((a,x)=>a+x,0);const done=wt.reduce((a,x,i)=>a+(isOff(i)?x:0),0);const pct=tot?Math.round(done*100/tot):0;
+  box.innerHTML=`  <div class="rp"><div class="rp-t"><span>Route done</span><span><b>${pct}%</b> · ${done} of ${tot} ${unit} · ${tot-done} left</span></div><div class="rp-b"><div class="rp-f" style="width:${pct}%"></div></div><div class="rp-n">Triple-tap a bag when it's finished (or rescued) to take it off · triple-tap again to bring it back</div></div><h2>Bags + their overflow</h2><div class="bg3" style="grid-template-rows:repeat(${Math.ceil(L.b.length/2)},auto)">${L.b.map((b,i)=>{const c=b[1].split(' ')[0];const num=b[1].split(' ').slice(1).join(' ')||b[1];const col=COLORS[c]||'#999';const dk=c==='Yellow'||c==='White';const of=P.filter(x=>x.t===i);return `<div class="tc${dk?' dk':''}${isOff(i)?' off':''}" data-i="${i}" style="background:${col}" title="${b[1]}"><div class="tr"><span class="ci">${i+1}</span><span class="tn">${num}</span><span class="pk">${b[2]}</span></div><div class="tm">${b[0]||'—'}</div>${of.length?`<div class="tof">${of.map(o=>`<span class="${o.k==='est'?'est':''}">OF ${o.z} ×${o.c}${o.k==='est'?'?':''}</span>`).join('')}</div>`:''}</div>`}).join('')}</div>
   <div style="font-size:12px;color:var(--mute);text-align:center">Circle = bag order on the pick sheet · right number = packages. Dashed ? overflow = placed by pick-sheet order (best guess).</div>`;
 }
+const TSTOPS={"2026-11-06":{"CX 1":[11,16,6,17,15,11,8,23,5,17]}};
+let tapN=0,tapT=0,tapI=-1;
+document.getElementById('ldBox').addEventListener('click',e=>{const t=e.target.closest('.tc');if(!t||!drv)return;const i=+t.dataset.i;const now=Date.now();
+  if(i!==tapI||now-tapT>700){tapN=0}tapI=i;tapT=now;tapN++;if(tapN<3)return;tapN=0;
+  const k=`rs|${cur}|${drv.n}|toteOff|${i}`;let on=false;try{on=localStorage.getItem(k)==='1'}catch(e){on=!!mem[k]}
+  if(on){mem[k]=0;try{localStorage.removeItem(k)}catch(e){}}else{mem[k]=1;try{localStorage.setItem(k,'1')}catch(e){}}
+  try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}renderLoad(drv);});
 let stOpen=false;
 function renderTot(){
   const b=document.getElementById('stBox'); const T=TOT[cur];
@@ -1618,4 +1630,4 @@ const C0={"DAYS":{"2026-11-05":{"label":"Thursday, November 5, 2026 \u00b7 Cycle
   };
 })();
 </script>
-<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));</script></body></html>
+</body></html>
