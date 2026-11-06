@@ -80,6 +80,7 @@ dialog input{width:100%;font-size:26px;padding:12px;border-radius:12px;border:2p
 .stt{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;color:var(--ink);font-weight:700;cursor:pointer;margin-bottom:10px;text-align:left}
 .stt span{float:right;color:var(--acc)}
 .nb:active{transform:scale(.97)}
+#rows.six .nb{font-size:clamp(10px,2.6vw,14px);padding:6px 1px;min-height:46px;border-radius:9px;letter-spacing:-.02em}#rows.six .nb .sp{font-size:.8em}#rows.six .nb .live{font-size:16px;left:2px}#rows.six .nb .hv{font-size:10px;right:3px}
 .tc{cursor:pointer;transition:filter .2s,opacity .2s;-webkit-tap-highlight-color:transparent}.nb .live{position:absolute;top:-2px;left:4px;font-size:22px;line-height:1;color:#FDE047;text-shadow:0 0 3px #000,0 0 1px #000}.nb .lp{display:block;font-size:.72em;font-weight:900;background:rgba(0,0,0,.35);border-radius:6px;padding:0 4px;margin-top:2px}
 .tc.off{filter:grayscale(1);opacity:.35}.tc.off .tn{text-decoration:line-through}
 .rp{grid-column:1/-1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}.rp-t{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);margin-bottom:6px}.rp-t b{color:var(--ink);font-size:16px}.rp-b{height:16px;background:var(--line);border-radius:8px;overflow:hidden}.rp-f{height:100%;background:linear-gradient(90deg,#16A34A,#22C55E);border-radius:8px;transition:width .4s}.rp-n{font-size:11px;color:var(--mute);margin-top:5px;text-align:center}
@@ -1504,7 +1505,7 @@ function renderList(){
   const list=parse(DAYS[cur].rows).sort((a,b)=>focusG==null?a.n.localeCompare(b.n):(ord(gk(a))-ord(gk(b))||a.n.localeCompare(b.n)));
   const btn=(d,extra='')=>`<button class="nb row${focusG!=null&&gk(d)!==focusG?' dim':''}" style="--c:var(--g${gk(d)})${extra}" data-n="${esc(d.n)}" data-g="${gk(d)}">${LIVE[liveId(cur,d.n)]?`<b class="live" title="Marking totes">✱</b>`:''}${esc(d.n)}${LIVE[liveId(cur,d.n)]&&livePct(d.n)!=null?`<span class="lp">${livePct(d.n)}%</span>`:''}${heavy(cur,d.r)?'<i class="hv" title="Heavy load">⚑</i>':''}<small class="sp">${esc(((d.s||'').trim()||'—').replace(/^STG\.?/i,''))}</small></button>`;
   let html='';
-  {const R=document.getElementById('rows');const colFlow=focusG==null&&!window.cyc0;R.style.gridAutoFlow=colFlow?'column':'';R.style.gridTemplateRows=colFlow?`repeat(${Math.ceil(list.length/4)},auto)`:'';}
+  {const R=document.getElementById('rows');const colFlow=focusG==null&&!window.cyc0;R.style.gridAutoFlow='';R.style.gridTemplateRows='';R.style.gridTemplateColumns=colFlow?'repeat(6,1fr)':'';R.style.gap=colFlow?'4px':'';R.classList.toggle('six',colFlow);}
   if(focusG==null){html=list.map(d=>btn(d)).join('')}
   else{
     if(!list.some(d=>gk(d)===focusG))html+=`<p class="hint" style="grid-column:1/-1;font-weight:700">No ${focusG?'Prestage '+focusG:'Rescue'} drivers on this day</p>`;
