@@ -1636,7 +1636,7 @@ const C0={"DAYS":{"2026-11-05":{"label":"Thursday, November 5, 2026 \u00b7 Cycle
   const sets=[DAYS,LOAD,TOT,PICK],names=['DAYS','LOAD','TOT','PICK'];let main=null;window.cyc0=false;
   const h1=document.querySelector('header h1'),h1t=h1.textContent;
   const st=document.createElement('style');st.textContent='#c0tab{display:block;width:calc(50% - 2px);height:58px;margin:2px auto 0;background:var(--dark);border:2px solid var(--acc);border-radius:10px;color:#fff;font:inherit;font-size:17px;font-weight:800;letter-spacing:.02em;cursor:pointer;padding:0 8px}#c0tab:active{transform:scale(.97)}main#list{padding-bottom:12px}main#list .lg:last-of-type{margin-bottom:8px}body.c0 .lg{display:none!important}body.c0 #rows{grid-template-columns:1fr;gap:10px}body.c0 #rows .nb{min-height:calc((100svh - 230px)/6);font-size:26px;font-weight:800;border-radius:16px;padding:8px 12px}body.c0 #rows .nb .sp{font-size:15px;margin-top:4px}body.c0 #rows .gsep{display:none}';document.head.appendChild(st);
-  const b=document.createElement('button');b.type='button';b.id='c0tab';b.textContent='Cycle 0';document.getElementById('list').appendChild(b);const fit=()=>{const l=[...document.querySelectorAll('#list .lg')].pop();if(!l||!l.offsetParent)return;const q=l.querySelectorAll('button');if(q.length<3)return;const x=q[0].getBoundingClientRect(),z=q[2].getBoundingClientRect();b.style.width=Math.round(z.right-x.left)+'px';b.style.height=Math.round(x.height*2)+'px'};addEventListener('resize',fit);setTimeout(fit,0);
+  const b=document.createElement('button');b.type='button';b.id='c0tab';b.textContent='Cycle 0';const c0row=document.createElement('div');c0row.id='c0row';document.getElementById('list').appendChild(c0row);c0row.appendChild(b);const fit=()=>{const l=[...document.querySelectorAll('#list .lg')].pop();if(!l||!l.offsetParent)return;const q=l.querySelectorAll('button');if(q.length<3)return;const x=q[0].getBoundingClientRect(),z=q[2].getBoundingClientRect();b.style.height=Math.round(x.height*2)+'px'};addEventListener('resize',fit);setTimeout(fit,0);
   b.onclick=()=>{
     if(!window.cyc0){main=sets.map(o=>Object.assign({},o));sets.forEach((o,i)=>{for(const k in o)delete o[k];Object.assign(o,C0[names[i]])})}
     else{sets.forEach((o,i)=>{for(const k in o)delete o[k];Object.assign(o,main[i])})}
@@ -1646,4 +1646,40 @@ const C0={"DAYS":{"2026-11-05":{"label":"Thursday, November 5, 2026 \u00b7 Cycle
   };
 })();
 </script>
-</body></html>
+
+<style>#c0row{display:flex;gap:6px;margin-top:2px}#c0row #c0tab{flex:1;width:auto!important;margin:0}#dspBtn{flex:1;background:#7f1d1d;border:2px solid #fca5a5;border-radius:10px;color:#fff;font:inherit;font-size:17px;font-weight:800;cursor:pointer}body.c0 #dspBtn{display:none}
+#dspLog{position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto;padding:12px 16px 40px}#dspLog h2{margin:4px 0 8px;font-size:20px}.dl-top{display:flex;gap:8px;align-items:center;margin-bottom:10px}.dl-top button,.dl-top select{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:700}
+.dl-sum{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.dl-sum span{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:4px 10px;font-size:13px}.dl-sum b{color:var(--acc)}
+.dl-row{display:grid;grid-template-columns:70px 1fr auto;gap:8px;padding:8px 10px;border-top:1px solid var(--line);background:var(--card);font-size:14px;font-variant-numeric:tabular-nums}.dl-row small{color:var(--mute)}.dl-self{color:#16A34A;font-weight:800}</style>
+<script>
+(function(){
+const SB_URL='https://ksuvjhutalvwgikvsdeu.supabase.co', SB_KEY='sb_publishable_v60aHIwkGcr_a9UvWTb9jA_7qcffk8B';   // Supabase project URL + anon public key
+const hdr={'apikey':SB_KEY,'Content-Type':'application/json'};
+let dev=null;try{dev=localStorage.getItem('boardDevice')}catch(e){}
+if(!dev){dev='ph-'+Math.random().toString(36).slice(2,8);try{localStorage.setItem('boardDevice',dev)}catch(e){}}
+function myName(){try{return localStorage.getItem('meName')||((document.getElementById('meBtn')||{}).dataset||{}).n||''}catch(e){return ((document.getElementById('meBtn')||{}).dataset||{}).n||''}}
+window.logTap=function(n){if(!SB_URL||!n)return;try{fetch(SB_URL+'/rest/v1/board_taps',{method:'POST',headers:Object.assign({'Prefer':'return=minimal'},hdr),body:JSON.stringify({board_day:cur,driver:n,device:dev,is_self:null}),keepalive:true}).catch(()=>{})}catch(e){}};
+const _go=window.go;window.go=function(n){logTap(n);return _go(n)};
+const row=document.getElementById('c0row');if(!row)return;
+const d=document.createElement('button');d.type='button';d.id='dspBtn';d.textContent='Dispatch';row.appendChild(d);
+let pw=null;
+d.onclick=()=>{const v=prompt('Dispatch password');if(v==null)return;pw=v;openLog(1)};
+async function openLog(days){
+  let box=document.getElementById('dspLog');if(!box){box=document.createElement('div');box.id='dspLog';document.body.appendChild(box)}
+  box.innerHTML='<p>Loading…</p>';
+  if(!SB_URL){box.innerHTML='<p>Log not connected yet.</p><button onclick="this.parentNode.remove()">Close</button>';return}
+  let rows=null;try{const r=await fetch(SB_URL+'/rest/v1/rpc/read_board_taps',{method:'POST',headers:hdr,body:JSON.stringify({pw,days})});rows=r.ok?await r.json():null}catch(e){}
+  if(!rows||!rows.length&&rows.denied){box.remove();alert('Wrong password');return}
+  if(rows.length===1&&rows[0].denied){box.remove();alert('Wrong password');return}
+  const by={},devs={};rows.forEach(x=>{by[x.driver]=(by[x.driver]||0)+1;devs[x.device]=devs[x.device]||(x.is_self?x.driver:null)||devs[x.device]});
+  const devTop={};rows.forEach(y=>{const m=devTop[y.device]=devTop[y.device]||{};m[y.driver]=(m[y.driver]||0)+1});const devName=x=>{const m=devTop[x]||{};const t=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];return 'Phone '+x.slice(3)+(t?' · mostly '+t[0]:'')};
+  const top=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  const t=x=>new Date(x).toLocaleString([], {month:'numeric',day:'numeric',hour:'numeric',minute:'2-digit'});
+  box.innerHTML=`<div class="dl-top"><button id="dlX">‹ Back</button><select id="dlD"><option value="1">Last 24 hours</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option></select></div>
+  <h2>Driver taps · ${rows.length}</h2><div class="dl-sum">${top.map(([n,c])=>`<span>${esc(n)} <b>${c}</b></span>`).join('')}</div>
+  <div class="dl-sum"><span>Phones using it <b>${Object.keys(devs).length}</b></span></div>
+  ${rows.map(x=>`<div class="dl-row"><small>${t(x.tapped_at)}</small><span>${esc(x.driver)}</span><small>${esc(devName(x.device))}</small></div>`).join('')||'<p>No taps yet.</p>'}`;
+  const sel=box.querySelector('#dlD');sel.value=String(days);sel.onchange=()=>openLog(+sel.value);box.querySelector('#dlX').onclick=()=>box.remove();
+}
+})();
+</script></body></html>
