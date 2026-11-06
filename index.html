@@ -1504,6 +1504,7 @@ function renderList(){
   const list=parse(DAYS[cur].rows).sort((a,b)=>focusG==null?a.n.localeCompare(b.n):(ord(gk(a))-ord(gk(b))||a.n.localeCompare(b.n)));
   const btn=(d,extra='')=>`<button class="nb row${focusG!=null&&gk(d)!==focusG?' dim':''}" style="--c:var(--g${gk(d)})${extra}" data-n="${esc(d.n)}" data-g="${gk(d)}">${LIVE[liveId(cur,d.n)]?`<b class="live" title="Marking totes">✱</b>`:''}${esc(d.n)}${LIVE[liveId(cur,d.n)]&&livePct(d.n)!=null?`<span class="lp">${livePct(d.n)}%</span>`:''}${heavy(cur,d.r)?'<i class="hv" title="Heavy load">⚑</i>':''}<small class="sp">${esc(((d.s||'').trim()||'—').replace(/^STG\.?/i,''))}</small></button>`;
   let html='';
+  {const R=document.getElementById('rows');const colFlow=focusG==null&&!window.cyc0;R.style.gridAutoFlow=colFlow?'column':'';R.style.gridTemplateRows=colFlow?`repeat(${Math.ceil(list.length/4)},auto)`:'';}
   if(focusG==null){html=list.map(d=>btn(d)).join('')}
   else{
     if(!list.some(d=>gk(d)===focusG))html+=`<p class="hint" style="grid-column:1/-1;font-weight:700">No ${focusG?'Prestage '+focusG:'Rescue'} drivers on this day</p>`;
