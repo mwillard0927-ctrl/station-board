@@ -1462,7 +1462,7 @@ Object.keys(DAYS).sort().reverse().forEach(k=>daySel.add(new Option(DAYS[k].labe
 let cur=daySel.value, drv=null, field=null;
 const esc=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const key=(n,f)=>`rs|${cur}|${window.cyc0?"c0|":""}${n}|${f}`;
-const SEED={"rs|2026-11-03|Matt W|mileage":"18436","rs|2026-11-03|Matt W|in":"09:18","rs|2026-11-03|Matt W|out":"17:31","rs|2026-11-02|Matt W|mileage":"20319","rs|2026-11-02|Matt W|in":"09:23","rs|2026-11-02|Matt W|out":"17:13","rs|2026-10-31|Matt W|mileage":"3096","rs|2026-10-31|Matt W|in":"09:27","rs|2026-10-31|Matt W|out":"19:02","rs|2026-10-30|Matt W|mileage":"16655","rs|2026-10-30|Matt W|in":"09:26","rs|2026-10-30|Matt W|out":"19:02","rs|2026-10-24|Matt W|mileage":"28538","rs|2026-10-24|Matt W|in":"09:26","rs|2026-10-24|Matt W|out":"19:04"};
+const SEED={"rs|2026-11-06|Matt W|in":"09:24","rs|2026-11-06|Matt W|out":"17:42","rs|2026-11-03|Matt W|mileage":"18436","rs|2026-11-03|Matt W|in":"09:18","rs|2026-11-03|Matt W|out":"17:31","rs|2026-11-02|Matt W|mileage":"20319","rs|2026-11-02|Matt W|in":"09:23","rs|2026-11-02|Matt W|out":"17:13","rs|2026-10-31|Matt W|mileage":"3096","rs|2026-10-31|Matt W|in":"09:27","rs|2026-10-31|Matt W|out":"19:02","rs|2026-10-30|Matt W|mileage":"16655","rs|2026-10-30|Matt W|in":"09:26","rs|2026-10-30|Matt W|out":"19:02","rs|2026-10-24|Matt W|mileage":"28538","rs|2026-10-24|Matt W|in":"09:26","rs|2026-10-24|Matt W|out":"19:04"};
 const get=(n,f)=>{let v=null;try{v=localStorage.getItem(key(n,f))}catch(e){v=mem[key(n,f)]}return v??SEED[key(n,f)]??null};
 const mem={};
 const set=(n,f,v)=>{mem[key(n,f)]=v;try{localStorage.setItem(key(n,f),v)}catch(e){}};
