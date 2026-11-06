@@ -1684,4 +1684,26 @@ async function openLog(days){
   const sel=box.querySelector('#dlD');sel.value=String(days);sel.onchange=()=>openLog(+sel.value);box.querySelector('#dlX').onclick=()=>box.remove();
 }
 })();
+</script>
+<style>
+body:has(#list:not(.hidden)) header{position:fixed;left:0;right:0;top:0;transform:translateY(-105%);transition:transform .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.35);border-radius:0 0 16px 16px;padding-top:calc(16px + env(safe-area-inset-top,0px))}
+body.hdrOpen:has(#list:not(.hidden)) header{transform:none}
+body:has(#list:not(.hidden)) main#list{padding-top:58px}
+#hdrBtn{display:none;position:fixed;top:calc(8px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:6;background:rgba(35,47,62,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:22px;padding:9px 18px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;white-space:nowrap}
+body:has(#list:not(.hidden)) #hdrBtn{display:block}
+body.hdrOpen #hdrBtn{top:auto;bottom:auto}
+header #stBox{margin-top:10px}header #stBox .stt{margin-bottom:0}header #stBox .ld{color:var(--ink)}
+</style>
+<script>
+(function(){
+const h=document.querySelector('header'),st=document.getElementById('stBox');if(st)h.appendChild(st);
+const b=document.createElement('button');b.type='button';b.id='hdrBtn';document.body.appendChild(b);
+const lbl=()=>{const o=document.body.classList.contains('hdrOpen');const v=daySel.options[daySel.selectedIndex];b.textContent=(o?'▴ Close':'▾ '+(v?v.text.replace(/, \d{4}$/,''):'Day'));
+  b.style.top=o?(h.getBoundingClientRect().height+8)+'px':''};
+b.onclick=e=>{e.stopPropagation();document.body.classList.toggle('hdrOpen');setTimeout(lbl,320);lbl()};
+document.addEventListener('click',e=>{if(document.body.classList.contains('hdrOpen')&&!h.contains(e.target)&&e.target!==b){document.body.classList.remove('hdrOpen');lbl()}});
+daySel.addEventListener('change',()=>setTimeout(lbl,50));['dPrev','dNext'].forEach(id=>{const x=document.getElementById(id);x&&x.addEventListener('click',()=>setTimeout(lbl,50))});
+new MutationObserver(()=>{if(document.body.classList.contains('hdrOpen'))lbl()}).observe(h,{childList:true,subtree:true});
+lbl();
+})();
 </script></body></html>
