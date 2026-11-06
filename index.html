@@ -1559,12 +1559,12 @@ const C0={"DAYS":{"2026-11-05":{"label":"Thursday, November 5, 2026 \u00b7 Cycle
 (function(){
   const sets=[DAYS,LOAD,TOT,PICK],names=['DAYS','LOAD','TOT','PICK'];let main=null;window.cyc0=false;
   const h1=document.querySelector('header h1'),h1t=h1.textContent;
-  const st=document.createElement('style');st.textContent='#c0tab{display:block;margin:28px auto 8px;background:none;border:0;color:var(--mute);opacity:.55;font:inherit;font-size:12px;letter-spacing:.04em;cursor:pointer;padding:6px 10px}';document.head.appendChild(st);
+  const st=document.createElement('style');st.textContent='#c0tab{display:block;margin:28px auto 8px;background:none;border:0;color:var(--mute);opacity:.55;font:inherit;font-size:12px;letter-spacing:.04em;cursor:pointer;padding:6px 10px}body.c0 .lg{display:none!important}body.c0 #rows{grid-template-columns:1fr;gap:10px}body.c0 #rows .nb{min-height:calc((100svh - 230px)/6);font-size:26px;font-weight:800;border-radius:16px;padding:8px 12px}body.c0 #rows .nb .sp{font-size:15px;margin-top:4px}body.c0 #rows .gsep{display:none}';document.head.appendChild(st);
   const b=document.createElement('button');b.type='button';b.id='c0tab';b.textContent='Cycle 0';document.getElementById('list').appendChild(b);
   b.onclick=()=>{
     if(!window.cyc0){main=sets.map(o=>Object.assign({},o));sets.forEach((o,i)=>{for(const k in o)delete o[k];Object.assign(o,C0[names[i]])})}
     else{sets.forEach((o,i)=>{for(const k in o)delete o[k];Object.assign(o,main[i])})}
-    window.cyc0=!window.cyc0;h1.textContent=window.cyc0?'Cycle 0 · 7 AM':h1t;b.textContent=window.cyc0?'Back to regular load out':'Cycle 0';
+    window.cyc0=!window.cyc0;document.body.classList.toggle('c0',window.cyc0);h1.textContent=window.cyc0?'Cycle 0 · 7 AM':h1t;b.textContent=window.cyc0?'Back to regular load out':'Cycle 0';
     daySel.innerHTML='';Object.keys(DAYS).sort().reverse().forEach(k=>daySel.add(new Option(DAYS[k].label.split(' · ')[0],k)));
     cur=daySel.value;sel='';focusG=null;route();navUp();scrollTo({top:0});
   };
