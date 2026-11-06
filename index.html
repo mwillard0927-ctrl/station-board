@@ -1709,7 +1709,7 @@ const b=document.createElement('button');b.type='button';b.id='hdrBtn';document.
 const lbl=()=>{const o=document.body.classList.contains('hdrOpen');const v=daySel.options[daySel.selectedIndex];b.textContent=(o?'▴ Close':'▾ '+(v?v.text.replace(/, \d{4}$/,''):'Day'));
   b.style.top=o?(h.getBoundingClientRect().height+8)+'px':''};
 b.onclick=e=>{e.stopPropagation();document.body.classList.toggle('hdrOpen');setTimeout(lbl,320);lbl()};
-document.addEventListener('click',e=>{if(document.body.classList.contains('hdrOpen')&&!h.contains(e.target)&&e.target!==b){document.body.classList.remove('hdrOpen');lbl()}});
+document.addEventListener('click',e=>{if(!e.target.isConnected||e.composedPath().includes(h))return;if(document.body.classList.contains('hdrOpen')&&!h.contains(e.target)&&e.target!==b){document.body.classList.remove('hdrOpen');lbl()}});
 daySel.addEventListener('change',()=>setTimeout(lbl,50));['dPrev','dNext'].forEach(id=>{const x=document.getElementById(id);x&&x.addEventListener('click',()=>setTimeout(lbl,50))});
 new MutationObserver(()=>{if(document.body.classList.contains('hdrOpen'))lbl()}).observe(h,{childList:true,subtree:true});
 lbl();
