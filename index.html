@@ -1688,7 +1688,7 @@ async function openLog(days){
 <style>
 body:has(#list:not(.hidden)) header{position:fixed;left:0;right:0;top:0;transform:translateY(-105%);transition:transform .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.35);border-radius:0 0 16px 16px;padding-top:calc(16px + env(safe-area-inset-top,0px))}
 body.hdrOpen:has(#list:not(.hidden)) header{transform:none}
-body:has(#list:not(.hidden)) main#list{padding-top:34px}body:has(#list:not(.hidden)) #list>.hint{margin:0 0 4px;font-size:12px;line-height:1.2}
+body:has(#list:not(.hidden)) main#list{padding-top:34px}body:has(#list:not(.hidden)) main#list{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;box-sizing:border-box;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}#list>.lg{margin:4px 0;flex:0 0 auto}#list>.lg button{padding:11px 2px}#rows.six{flex:1 1 auto;grid-auto-rows:1fr;align-content:stretch}#rows.six .nb{min-height:0}#c0row{flex:0 0 auto;margin-top:6px}body:has(#list:not(.hidden)) #list>.hint{margin:0 0 4px;font-size:12px;line-height:1.2}
 #hdrBtn{display:none;position:fixed;top:calc(8px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:6;background:rgba(35,47,62,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:14px;padding:2px 14px;font:inherit;font-size:13px;line-height:1.3;font-weight:800;cursor:pointer;white-space:nowrap}
 body:has(#list:not(.hidden)) #hdrBtn{display:block}
 body.hdrOpen #hdrBtn{top:auto;bottom:auto}
