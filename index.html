@@ -1518,7 +1518,7 @@ function renderList(){
   const btn=(d,extra='')=>`<button class="nb row${focusG!=null&&gk(d)!==focusG?' dim':''}" style="--c:var(--g${gk(d)})${extra}" data-n="${esc(d.n)}" data-g="${gk(d)}">${LIVE[liveId(cur,d.n)]?`<b class="live" title="Marking totes">✱</b>`:''}${esc(d.n)}${LIVE[liveId(cur,d.n)]&&livePct(d.n)!=null?`<span class="lp">${livePct(d.n)}%</span>`:''}${heavy(cur,d.r)?'<i class="hv" title="Heavy load">⚑</i>':''}<small class="sp">${esc(((d.s||'').trim()||'—').replace(/^STG\.?/i,''))}</small></button>`;
   let html='';
   {const R=document.getElementById('rows');const colFlow=focusG==null&&!window.cyc0;R.style.gridAutoFlow='';R.style.gridTemplateRows='';R.style.gridTemplateColumns=colFlow?'repeat(6,1fr)':'';R.style.gap=colFlow?'4px':'';R.classList.toggle('six',colFlow);}
-  if(focusG==null){html=list.map(d=>btn(d)).join('')}
+  if(focusG==null){const reg=list.filter(d=>gk(d)!==0),res=list.filter(d=>gk(d)===0);html=reg.map(d=>btn(d)).join('')+res.map((d,i)=>btn(d,i===0&&(reg.length%6===0||6-reg.length%6<res.length)?';grid-column-start:1':'')).join('')}
   else{
     if(!list.some(d=>gk(d)===focusG))html+=`<p class="hint" style="grid-column:1/-1;font-weight:700">No ${focusG?'Prestage '+focusG:'Rescue'} drivers on this day</p>`;
     [1,2,3,4,5].forEach(g=>{const P=parkMap(cur,String(g));const inG=list.filter(d=>gk(d)===g);if(!inG.length)return;
