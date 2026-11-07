@@ -84,7 +84,7 @@ dialog input{width:100%;font-size:26px;padding:12px;border-radius:12px;border:2p
 .dc-van2{background:#1F2937;border-radius:12px;color:#fff;display:flex;flex-direction:column;overflow:hidden}
 .dc-van2>div{text-align:center;padding:6px 4px}.dc-van2 .v1{padding:10px 4px 8px}.dc-van2 .v2{border-top:1px solid rgba(255,255,255,.15);display:flex;align-items:baseline;justify-content:center;gap:6px;flex:1;align-items:center}
 .dc-van2 span{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#cbd5e1}.dc-van2 .v2 span{display:inline;font-weight:800}
-.dc-van2 b{display:block;font-size:34px;line-height:1;color:var(--acc);font-variant-numeric:tabular-nums}.dc-van2 .v2 b{display:inline;font-size:24px}
+.dc-van2 b{display:block;font-size:34px;line-height:1;color:var(--acc);font-variant-numeric:tabular-nums}.dc-van2 .v3{border-top:1px solid rgba(255,255,255,.15);flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 4px}.dc-van2 .v3 span{font-size:10.5px}.dc-van2 .v2 b{display:inline;font-size:24px}
 .dc-r{display:flex;flex-direction:column;gap:8px;min-width:0}
 .dc-nm2{font-size:clamp(28px,9vw,40px);font-weight:900;text-align:center;line-height:1.05;overflow-wrap:anywhere}
 .dc-ch2{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}.dc-ch2 span{border-radius:20px;padding:4px 12px;font-size:15px;color:#fff}.dc-ch2 b{font-weight:800}
@@ -113,7 +113,7 @@ dialog input{width:100%;font-size:26px;padding:12px;border-radius:12px;border:2p
 <main id="detail" class="hidden">
   <button class="back" onclick="back()">‹ All drivers</button>
   <div class="dc">
-    <div class="dc2"><div class="dc-van2"><div class="v1"><span>Van</span><b id="dVan"></b></div><div class="v2"><span>P</span><b id="dPh">—</b></div><div class="v2"><span>B</span><b id="dBag"></b></div></div>
+    <div class="dc2"><div class="dc-van2"><div class="v1"><span>Van</span><b id="dVan"></b></div><div class="v3"><b id="dBag"></b><span>Phone / Bag</span><i id="dPh" hidden></i></div></div>
       <div class="dc-r"><div class="dc-nm2" id="dName"></div>
         <div class="dc-ch2"><span class="gc" id="cGrp">Grp <b id="dGrp"></b></span><span class="gc" id="cStg">STG <b id="dStg"></b></span></div>
         <div class="dc-rt">Route <b id="dRoute"></b></div>
