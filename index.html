@@ -80,6 +80,17 @@ dialog input{width:100%;font-size:26px;padding:12px;border-radius:12px;border:2p
 .stt{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;color:var(--ink);font-weight:700;cursor:pointer;margin-bottom:10px;text-align:left}
 .stt span{float:right;color:var(--acc)}
 .nb:active{transform:scale(.97)}
+.dc2{display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:stretch}
+.dc-van2{background:#1F2937;border-radius:12px;color:#fff;display:flex;flex-direction:column;overflow:hidden}
+.dc-van2>div{text-align:center;padding:6px 4px}.dc-van2 .v1{padding:10px 4px 8px}.dc-van2 .v2{border-top:1px solid rgba(255,255,255,.15);display:flex;align-items:baseline;justify-content:center;gap:6px;flex:1;align-items:center}
+.dc-van2 span{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#cbd5e1}.dc-van2 .v2 span{display:inline;font-weight:800}
+.dc-van2 b{display:block;font-size:34px;line-height:1;color:var(--acc);font-variant-numeric:tabular-nums}.dc-van2 .v2 b{display:inline;font-size:24px}
+.dc-r{display:flex;flex-direction:column;gap:8px;min-width:0}
+.dc-nm2{font-size:clamp(28px,9vw,40px);font-weight:900;text-align:center;line-height:1.05;overflow-wrap:anywhere}
+.dc-ch2{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}.dc-ch2 span{border-radius:20px;padding:4px 12px;font-size:15px;color:#fff}.dc-ch2 b{font-weight:800}
+.dc-rt{text-align:center;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:6px;font-size:16px}.dc-rt b{color:var(--acc);font-size:22px;font-weight:900;margin-left:4px}
+.dc-ld2{font-size:13px;color:var(--mute);text-align:center;line-height:1.35}.dc-ld2 b{color:var(--ink);font-size:15px}.dc-ld2:empty{display:none}
+
 #rows.six .nb{font-size:clamp(10px,2.6vw,14px);padding:6px 1px;min-height:46px;border-radius:9px;letter-spacing:-.02em}#rows.six .nb .sp{font-size:.8em}#rows.six .nb .live{font-size:16px;left:2px}#rows.six .nb .hv{font-size:10px;right:3px}
 .tc{cursor:pointer;transition:filter .2s,opacity .2s;-webkit-tap-highlight-color:transparent}.nb .live{position:absolute;top:-2px;left:4px;font-size:22px;line-height:1;color:#FDE047;text-shadow:0 0 3px #000,0 0 1px #000}.nb .lp{display:block;font-size:.72em;font-weight:900;background:rgba(0,0,0,.35);border-radius:6px;padding:0 4px;margin-top:2px}
 .tc.off{filter:grayscale(1);opacity:.35}.tc.off .tn{text-decoration:line-through}
@@ -102,11 +113,12 @@ dialog input{width:100%;font-size:26px;padding:12px;border-radius:12px;border:2p
 <main id="detail" class="hidden">
   <button class="back" onclick="back()">‹ All drivers</button>
   <div class="dc">
-    <div class="dc-top"><div class="dc-van"><span>Van</span><b id="dVan"></b></div>
-      <div><div class="dc-nm" id="dName"></div><div class="dc-ch">
-        <span>Route <b id="dRoute" style="color:var(--acc)"></b></span><span>Bag <b id="dBag"></b></span>
-        <span class="gc" id="cStg">STG <b id="dStg"></b></span><span class="gc" id="cGrp">Grp <b id="dGrp"></b></span><span><b id="dType"></b></span></div></div></div>
-    <div class="dc-ld" id="dLd"></div><div class="dc-hv" id="dHv"></div>
+    <div class="dc2"><div class="dc-van2"><div class="v1"><span>Van</span><b id="dVan"></b></div><div class="v2"><span>P</span><b id="dPh">—</b></div><div class="v2"><span>B</span><b id="dBag"></b></div></div>
+      <div class="dc-r"><div class="dc-nm2" id="dName"></div>
+        <div class="dc-ch2"><span class="gc" id="cGrp">Grp <b id="dGrp"></b></span><span class="gc" id="cStg">STG <b id="dStg"></b></span></div>
+        <div class="dc-rt">Route <b id="dRoute"></b></div>
+        <div class="dc-ld2" id="dLd"></div><b id="dType" hidden></b></div></div>
+    <div class="dc-hv" id="dHv"></div>
   </div>
   <div class="btns">
     <div id="ldBox" class="ld"></div><div id="dPk" class="pkbox"></div>
@@ -1538,12 +1550,13 @@ function renderLoad(d){
   if(!L){box.innerHTML='';document.getElementById('dLd').innerHTML='';document.getElementById('dHv').innerHTML='';return}
   const ofp=L.o.reduce((a,x)=>a+x[1],0);const P=placeOF(L,d.r);
   {const hv=heavy(cur,d.r);document.getElementById('dHv').innerHTML=hv?'⚑ Heavy load: '+hv.join(' · '):''}
-  document.getElementById('dLd').innerHTML=`Load: <b>${L.b.length}</b> bags · <b>${ofp}</b> overflow · <b>${L.t}</b> pkgs · <b>${L.c}</b> comm.`;
+  document.getElementById('dLd').innerHTML=`<b>${L.b.length}</b> bags · <b>${ofp}</b> overflow<br><b>${L.t}</b> pkgs · <b>${L.c}</b> comm.`;
   const ST=(TSTOPS[cur]||{})[d.r];const offK=i=>`rs|${cur}|${d.n}|toteOff|${i}`;const isOff=i=>toteOff(d.n,i);
   const unit=ST?'stops':'pkgs';const wt=L.b.map((b,i)=>ST?ST[i]:b[2]+P.filter(x=>x.t===i).reduce((a,x)=>a+x.c,0));const tot=wt.reduce((a,x)=>a+x,0);const done=wt.reduce((a,x,i)=>a+(isOff(i)?x:0),0);const pct=tot?Math.round(done*100/tot):0;
   box.innerHTML=`  <h2>Bags + their overflow</h2><div class="bg3" style="grid-template-rows:repeat(${Math.ceil(L.b.length/2)},auto)">${L.b.map((b,i)=>{const c=b[1].split(' ')[0];const num=b[1].split(' ').slice(1).join(' ')||b[1];const col=COLORS[c]||'#999';const dk=c==='Yellow'||c==='White';const of=P.filter(x=>x.t===i);return `<div class="tc${dk?' dk':''}${isOff(i)?' off':''}" data-i="${i}" style="background:${col}" title="${b[1]}"><div class="tr"><span class="ci">${i+1}</span><span class="tn">${num}</span><span class="pk">${b[2]}</span></div><div class="tm">${b[0]||'—'}</div>${of.length?`<div class="tof">${of.map(o=>`<span class="${o.k==='est'?'est':''}">OF ${o.z} ×${o.c}${o.k==='est'?'?':''}</span>`).join('')}</div>`:''}</div>`}).join('')}</div>
   <div style="font-size:12px;color:var(--mute);text-align:center">Circle = bag order on the pick sheet · right number = packages. Dashed ? overflow = placed by pick-sheet order (best guess).</div><div class="rp" style="margin-top:10px"><div class="rp-t"><span>Route done</span><span><b>${pct}%</b> · ${done} of ${tot} ${unit} · ${tot-done} left</span></div><div class="rp-b"><div class="rp-f" style="width:${pct}%"></div></div><div class="rp-n">Triple-tap a bag when it's finished (or rescued) to take it off · triple-tap again to bring it back · ${liveDb?'<b style="color:#16A34A">● Live — dispatch sees this</b>':'Saved on this phone only'}</div></div>`;
 }
+window.PHONES={};
 const TSTOPS={"2026-11-06":{"CX 1":[11,16,6,17,15,11,8,23,5,17]}};
 let tapN=0,tapT=0,tapI=-1;
 document.getElementById('ldBox').addEventListener('click',e=>{const t=e.target.closest('.tc');if(!t||!drv)return;const i=+t.dataset.i;const now=Date.now();
@@ -1598,7 +1611,7 @@ function route(){
   $('dStg').textContent=(drv.s&&drv.s.trim())?drv.s.trim().replace(/^STG\.?/i,''):'none';
   {const gc='var(--g'+(['1','2','3','4','5'].includes(String(drv.g||'').trim())?String(drv.g).trim():'0')+')';$('cStg').style.background=gc;$('cGrp').style.background=gc;}
   $('dGrp').textContent=drv.g||'Rescue';$('cGrp').firstChild.textContent=drv.g?'Grp ':''; $('dType').textContent=drv.t;
-  renderLoad(drv);parkCard(drv); $('dVan').textContent=drv.v; $('dBag').textContent=drv.b; $('dRoute').textContent=drv.r;
+  renderLoad(drv);parkCard(drv); $('dVan').textContent=drv.v; $('dBag').textContent=drv.b;$('dPh').textContent=(window.PHONES&&PHONES[cur+'|'+drv.n])||'—'; $('dRoute').textContent=drv.r;
   const m=get(drv.n,'mileage');
   vMileage.textContent=m?Number(m).toLocaleString()+' mi':'Tap to enter';
   vIn.textContent=fmt12(get(drv.n,'in'))||'Tap to set';
