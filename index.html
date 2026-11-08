@@ -2114,6 +2114,16 @@ function render(){var o=document.getElementById('tsOv');if(!o||!drv)return;var d
   o.querySelector('#tsX').onclick=close;
 }
 function shrink(file,max){return new Promise(function(ok){var u=URL.createObjectURL(file),im=new Image();im.onload=function(){var k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;var g=c.getContext('2d');g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c)};im.onerror=function(){ok(null)};im.src=u})}
+function miHit(t){return /\d[\d,. ]{2,9}\d\s*(?:mi|ml|m1|mI|rni|MI|Mi)\b/.test(String(t||''))}
+/* bright text that stands out from what's right around it (works on the lighter odometer bar too) -> black on white */
+function odoPrep(c,R,T){var w=c.width,h=c.height,d=c.getContext('2d').getImageData(0,0,w,h).data,g=new Uint8Array(w*h),I=new Float64Array((w+1)*(h+1));
+  for(var i=0;i<w*h;i++){var r=d[i*4],gg=d[i*4+1],b=d[i*4+2];g[i]=Math.min(r,gg,b)}
+  for(var y=0;y<h;y++){var rs=0;for(var x=0;x<w;x++){rs+=g[y*w+x];I[(y+1)*(w+1)+x+1]=I[y*(w+1)+x+1]+rs}}
+  var o=document.createElement('canvas');o.width=w;o.height=h;var ox=o.getContext('2d'),od=ox.createImageData(w,h);
+  for(var y=0;y<h;y++){var y0=Math.max(0,y-R),y1=Math.min(h,y+R+1);for(var x=0;x<w;x++){var x0=Math.max(0,x-R),x1=Math.min(w,x+R+1);
+    var m=(I[y1*(w+1)+x1]-I[y0*(w+1)+x1]-I[y1*(w+1)+x0]+I[y0*(w+1)+x0])/((y1-y0)*(x1-x0)),v=g[y*w+x],k=(v>m+T&&v>110)?0:255,j=(y*w+x)*4;
+    od.data[j]=od.data[j+1]=od.data[j+2]=k;od.data[j+3]=255}}
+  ox.putImageData(od,0,0);return o}
 function pickMi(t){t=String(t||'').replace(/[Oo](?=\d)|(?<=\d)[Oo]/g,'0');
   /* mileage = the number written right before "mi" (OCR may read it as ml, m1, mI, rni) */
   var m=t.match(/(\d[\d,. ]{2,9}\d)\s*(?:mi|ml|m1|mI|rni|MI|Mi)\b/);if(m){var d=m[1].replace(/\D/g,'');if(d.length>=3&&d.length<=7)return d}
@@ -2125,7 +2135,10 @@ async function readOdo(file){miOpen=true;miNote='📷 Reading the odometer…';r
     if(r.ok){var j=await r.json();if(j&&j.mileage&&!/[\/:]/.test(String(j.mileage))){val=String(j.mileage).replace(/\D/g,'');if(val.length<3||val.length>7)val=''}}}catch(e){}
   if(!val){try{miNote='📷 Reading the odometer (backup reader)…';render();
     if(!window.Tesseract)await new Promise(function(ok,no){var sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';sc.onload=ok;sc.onerror=no;document.head.appendChild(sc)});
-    var c2=await shrink(file,1600),w=await Tesseract.createWorker('eng');var rr=await w.recognize(c2);await w.terminate();val=pickMi(rr.data.text)}catch(e){}}
+    var c2=await shrink(file,1600),w=await Tesseract.createWorker('eng');await w.setParameters({tessedit_pageseg_mode:'11'});
+    var tries=[[30,15],[30,30],[15,15]],best='';
+    for(var ti=0;ti<tries.length&&!val;ti++){var rr=await w.recognize(odoPrep(c2,tries[ti][0],tries[ti][1]));var t=rr.data.text;if(miHit(t))val=pickMi(t);else if(!best)best=pickMi(t)}
+    await w.terminate();if(!val)val=best}catch(e){}}
   if(val){set(drv.n,'mileage',val);miNote='Read '+Number(val).toLocaleString()+' mi from your photo — check it matches the odometer, or tap Type it in to fix it.'}
   else miNote='Couldn\'t read the odometer from that photo. Try again closer and straight on, or tap Type it in.';
   render()}
