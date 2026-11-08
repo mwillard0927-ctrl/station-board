@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dispatch Package Reports</title>
+<style>
+:root{--bg:#f3f4f6;--card:#fff;--ink:#111827;--mute:#6b7280;--line:#e5e7eb;--acc:#ff9900;--dark:#232f3e}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f141b;--card:#1a212b;--ink:#f3f4f6;--mute:#9ca3af;--line:#2b3440}}
+:root[data-theme="dark"]{--bg:#0f141b;--card:#1a212b;--ink:#f3f4f6;--mute:#9ca3af;--line:#2b3440}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:var(--dark);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:2}
+header h1{margin:0;font-size:18px}.bar{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.bar input,.bar button{font:inherit;font-size:15px;padding:8px 10px;border-radius:10px;border:0}
+.bar button{background:rgba(255,255,255,.15);color:#fff;font-weight:700;cursor:pointer}
+main{max-width:1000px;margin:0 auto;padding:12px 16px 40px}
+.date{font-size:26px;font-weight:900;margin:6px 0 2px}.sum{color:var(--mute);margin-bottom:12px;display:flex;gap:12px;flex-wrap:wrap}
+.chip{display:inline-block;border-radius:6px;padding:2px 8px;font-weight:800;font-size:12px}
+.M{background:#fecaca;color:#7f1d1d}.D{background:#fde68a;color:#78350f}.S{background:#ddd6fe;color:#4c1d95}
+.wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:800px;font-size:14px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:8px 10px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums;vertical-align:top}
+tr.drv td{background:var(--bg);font-weight:800;font-size:15px;border-top:2px solid var(--line)}tr.drv span{color:var(--mute);font-weight:600;font-size:13px;margin-left:8px}
+tr.new td{animation:hl 3s ease}@keyframes hl{from{background:#fff7d6}to{background:transparent}}
+.login{max-width:360px;margin:40px auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+.login input{width:100%;font:inherit;font-size:16px;padding:10px;border-radius:10px;border:1px solid var(--line);margin-top:8px;background:var(--bg);color:var(--ink)}
+.login button{width:100%;margin-top:12px;padding:12px;border:0;border-radius:10px;background:var(--acc);font:inherit;font-weight:800;font-size:16px;cursor:pointer}
+.err{color:#dc2626;margin-top:8px;font-size:14px}.ph{width:72px;height:72px;object-fit:cover;border-radius:8px;display:block;cursor:zoom-in}.empty{text-align:center;color:var(--mute);padding:30px}.hidden{display:none!important}
+</style></head><body>
+<header><h1>Dispatch · Package Reports</h1>
+<div class="bar" id="bar"><input type="date" id="day"><button id="prev">‹</button><button id="next">›</button><button id="today">Today</button><span id="upd" style="font-size:12px;opacity:.75"></span><button id="out" style="margin-left:auto">Sign out</button></div></header>
+<div class="login hidden" id="login"><b>Dispatch password</b><div style="font-size:13px;color:var(--mute);margin-top:4px">Same password as the board's Dispatch log.</div><input id="pw" type="password" placeholder="Dispatch password" autocomplete="current-password"><button id="go">Sign in</button><div class="err" id="err"></div></div>
+<main id="main" class="hidden"><div class="date" id="dl"></div><div class="sum" id="sum"></div><div class="wrap"><table><thead><tr><th>Time</th><th>Issue</th><th>Stop address</th><th>Aid #</th><th>TBA</th><th>Type</th><th>Photo</th></tr></thead><tbody id="tb"></tbody></table></div></main>
+<script>
+var SB_URL='https://ksuvjhutalvwgikvsdeu.supabase.co',SB_KEY='sb_publishable_v60aHIwkGcr_a9UvWTb9jA_7qcffk8B';
+var $=function(i){return document.getElementById(i)},seen={},first=true,pw=null,timer=null;
+try{pw=sessionStorage.getItem('dspPw')}catch(e){}
+function local(d){var z=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return z.toISOString().slice(0,10)}
+$('day').value=local(new Date());
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+var CH={MISSING:'M',DAMAGED:'D',MISSORT:'S'};
+async function fetchDay(d,p){var r=await fetch(SB_URL+'/rest/v1/rpc/read_package_reports',{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({pw:p,day:d})});
+  if(!r.ok){var t=await r.text();throw new Error(/denied/.test(t)?'denied':t)}return r.json()}
+async function load(){
+  var d=$('day').value;$('dl').textContent=new Date(d+'T12:00:00').toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  var rows;try{rows=await fetchDay(d,pw)}catch(e){if(e.message==='denied'){show(false);$('err').textContent='Wrong password';return}$('tb').innerHTML='<tr><td colspan="7" class="empty">Could not load: '+esc(e.message)+'</td></tr>';return}
+  var g={},order=[];
+  rows.forEach(function(x){if(!g[x.driver]){g[x.driver]=[];order.push(x.driver)}g[x.driver].push(x)});
+  var c={MISSING:0,DAMAGED:0,MISSORT:0};rows.forEach(function(x){c[x.issue]++});
+  $('sum').innerHTML=rows.length?'<span>'+order.length+' driver'+(order.length>1?'s':'')+'</span><span class="chip M">Missing '+c.MISSING+'</span><span class="chip D">Damaged '+c.DAMAGED+'</span><span class="chip S">Missort '+c.MISSORT+'</span>':'';
+  var h='';
+  order.forEach(function(n){var L=g[n];
+    h+='<tr class="drv"><td colspan="7">'+esc(n)+'<span>'+esc(L[0].route||'')+' · '+L.length+' package'+(L.length>1?'s':'')+'</span></td></tr>';
+    L.forEach(function(x){var id=x.key+x.updated_at,nw=!first&&!seen[id];seen[id]=1;
+      var t=new Date(x.created_at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+      h+='<tr'+(nw?' class="new"':'')+'><td>'+t+'</td><td><span class="chip '+CH[x.issue]+'">'+x.issue+'</span></td><td>'+esc(x.address||'—')+'</td><td><b>'+esc(x.aid||'—')+'</b></td><td>'+esc(x.tba||'—')+'</td><td>'+esc(x.pkg_type||'')+'</td><td>'+(x.photo?'<img class="ph" src="'+x.photo+'" alt="Damaged package" onclick="big(this.src)">':'')+'</td></tr>'});
+  });
+  $('tb').innerHTML=h||'<tr><td colspan="7" class="empty">No packages reported for this day yet.</td></tr>';
+  first=false;$('upd').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit',second:'2-digit'});
+}
+function big(src){var o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:9;padding:16px';o.innerHTML='<img src="'+src+'" style="max-width:100%;max-height:100%;border-radius:10px">';o.onclick=function(){o.remove()};document.body.appendChild(o)}
+function shift(n){var d=new Date($('day').value+'T12:00:00');d.setDate(d.getDate()+n);$('day').value=local(d);first=true;load()}
+$('prev').onclick=function(){shift(-1)};$('next').onclick=function(){shift(1)};$('today').onclick=function(){$('day').value=local(new Date());first=true;load()};$('day').onchange=function(){first=true;load()};
+$('out').onclick=function(){pw=null;try{sessionStorage.removeItem('dspPw')}catch(e){}show(false)};
+$('go').onclick=function(){pw=$('pw').value;try{sessionStorage.setItem('dspPw',pw)}catch(e){}$('err').textContent='';show(true)};
+$('pw').onkeydown=function(e){if(e.key==='Enter')$('go').click()};
+function show(on){$('login').classList.toggle('hidden',on);$('main').classList.toggle('hidden',!on);$('bar').classList.toggle('hidden',!on);clearInterval(timer);if(on){first=true;load();timer=setInterval(load,15000)}}
+show(!!pw);
+</script>
+</body></html>
