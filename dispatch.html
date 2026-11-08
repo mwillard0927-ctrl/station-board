@@ -32,9 +32,9 @@ tr.new td{animation:hl 3s ease}@keyframes hl{from{background:#fff7d6}to{backgrou
 <script>
 var SB_URL='https://ksuvjhutalvwgikvsdeu.supabase.co',SB_KEY='sb_publishable_v60aHIwkGcr_a9UvWTb9jA_7qcffk8B';
 var $=function(i){return document.getElementById(i)},seen={},first=true,pw=null,timer=null;
-try{pw=sessionStorage.getItem('dspPw')}catch(e){}
+try{pw=localStorage.getItem('dspPw')}catch(e){}
 function local(d){var z=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return z.toISOString().slice(0,10)}
-$('day').value=local(new Date());
+$('day').value=(/^\d{4}-\d{2}-\d{2}$/.test(new URLSearchParams(location.search).get('d')||'')?new URLSearchParams(location.search).get('d'):local(new Date()));
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 var CH={MISSING:'M',DAMAGED:'D',MISSORT:'S'};
 async function fetchDay(d,p){var r=await fetch(SB_URL+'/rest/v1/rpc/read_package_reports',{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({pw:p,day:d})});
@@ -59,8 +59,8 @@ async function load(){
 function big(src){var o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:9;padding:16px';o.innerHTML='<img src="'+src+'" style="max-width:100%;max-height:100%;border-radius:10px">';o.onclick=function(){o.remove()};document.body.appendChild(o)}
 function shift(n){var d=new Date($('day').value+'T12:00:00');d.setDate(d.getDate()+n);$('day').value=local(d);first=true;load()}
 $('prev').onclick=function(){shift(-1)};$('next').onclick=function(){shift(1)};$('today').onclick=function(){$('day').value=local(new Date());first=true;load()};$('day').onchange=function(){first=true;load()};
-$('out').onclick=function(){pw=null;try{sessionStorage.removeItem('dspPw')}catch(e){}show(false)};
-$('go').onclick=function(){pw=$('pw').value;try{sessionStorage.setItem('dspPw',pw)}catch(e){}$('err').textContent='';show(true)};
+$('out').onclick=function(){pw=null;try{localStorage.removeItem('dspPw')}catch(e){}show(false)};
+$('go').onclick=function(){pw=$('pw').value;try{localStorage.setItem('dspPw',pw)}catch(e){}$('err').textContent='';show(true)};
 $('pw').onkeydown=function(e){if(e.key==='Enter')$('go').click()};
 function show(on){$('login').classList.toggle('hidden',on);$('main').classList.toggle('hidden',!on);$('bar').classList.toggle('hidden',!on);clearInterval(timer);if(on){first=true;load();timer=setInterval(load,15000)}}
 show(!!pw);

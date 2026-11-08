@@ -1735,15 +1735,19 @@ window.logTap=function(n){if(!SB_URL||!n)return;try{fetch(SB_URL+'/rest/v1/board
 const _go=window.go;window.go=function(n){logTap(n);return _go(n)};
 const row=document.getElementById('c0row');if(!row)return;
 const d=document.createElement('button');d.type='button';d.id='dspBtn';d.textContent='Dispatch';row.appendChild(d);
-let pw=null;
-d.onclick=()=>{const v=prompt('Dispatch password');if(v==null)return;pw=v;openLog(1)};
+let pw=null;try{pw=localStorage.getItem('dspPw')}catch(e){}
+const dv=(v)=>{try{v?sessionStorage.setItem('dspView',v):sessionStorage.removeItem('dspView')}catch(e){}};
+d.onclick=()=>{if(!pw){const v=prompt('Dispatch password');if(v==null)return;pw=v}dv('log');openLog(1)};
+window.dspSignOut=()=>{pw=null;try{localStorage.removeItem('dspPw')}catch(e){}dv('');const b=document.getElementById('dspLog');if(b)b.remove()};
+setTimeout(()=>{let v=null;try{v=sessionStorage.getItem('dspView')}catch(e){}if(pw&&v){openLog(1).then(()=>{if(v==='ck'&&window.openChecklist)window.openChecklist()})}},300);
 async function openLog(days){
   let box=document.getElementById('dspLog');if(!box){box=document.createElement('div');box.id='dspLog';document.body.appendChild(box)}
   box.innerHTML='<p>Loading…</p>';
   if(!SB_URL){box.innerHTML='<p>Log not connected yet.</p><button onclick="this.parentNode.remove()">Close</button>';return}
   let rows=null;try{const r=await fetch(SB_URL+'/rest/v1/rpc/read_board_taps',{method:'POST',headers:hdr,body:JSON.stringify({pw,days})});rows=r.ok?await r.json():null}catch(e){}
-  if(!rows||!rows.length&&rows.denied){box.remove();alert('Wrong password');return}
-  if(rows.length===1&&rows[0].denied){box.remove();alert('Wrong password');return}
+  if(!rows||!rows.length&&rows.denied){box.remove();window.dspSignOut();alert('Wrong password');return}
+  if(rows.length===1&&rows[0].denied){box.remove();window.dspSignOut();alert('Wrong password');return}
+  try{localStorage.setItem('dspPw',pw)}catch(e){}
   const by={},devs={};rows.forEach(x=>{by[x.driver]=(by[x.driver]||0)+1;devs[x.device]=devs[x.device]||(x.is_self?x.driver:null)||devs[x.device]});
   const devTop={};rows.forEach(y=>{const m=devTop[y.device]=devTop[y.device]||{};m[y.driver]=(m[y.driver]||0)+1});const devName=x=>{const m=devTop[x]||{};const t=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];return 'Phone '+x.slice(3)+(t?' · mostly '+t[0]:'')};
   const top=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,12);
@@ -1752,7 +1756,7 @@ async function openLog(days){
   <h2>Driver taps · ${rows.length}</h2><div class="dl-sum">${top.map(([n,c])=>`<span>${esc(n)} <b>${c}</b></span>`).join('')}</div>
   <div class="dl-sum"><span>Phones using it <b>${Object.keys(devs).length}</b></span></div>
   ${rows.map(x=>`<div class="dl-row"><small>${t(x.tapped_at)}</small><span>${esc(x.driver)}</span><small>${esc(devName(x.device))}</small></div>`).join('')||'<p>No taps yet.</p>'}`;
-  const sel=box.querySelector('#dlD');sel.value=String(days);sel.onchange=()=>openLog(+sel.value);box.querySelector('#dlX').onclick=()=>box.remove();
+  const sel=box.querySelector('#dlD');sel.value=String(days);sel.onchange=()=>openLog(+sel.value);box.querySelector('#dlX').onclick=()=>{box.remove();dv('')};const so=document.createElement('button');so.textContent='Sign out';so.style.cssText='margin-left:6px';so.onclick=()=>window.dspSignOut();box.querySelector('.dl-top').insertBefore(so,box.querySelector('#dlD').nextSibling);
 }
 })();
 </script>
@@ -1986,7 +1990,7 @@ document.addEventListener('click',function(e){var el=e.target.closest&&e.target.
 window.ppRender=function(){busy='';render();flush()};
 render();
 })();
-</script><script>(function(){new MutationObserver(function(){var b=document.getElementById('dspLog');if(!b)return;var t=b.querySelector('.dl-top');if(!t||t.querySelector('.dl-pr'))return;var a=document.createElement('a');a.className='dl-pr';a.textContent='📦 Package reports';a.href='dispatch.html';a.style.cssText='margin-left:auto;background:#ff9900;color:#111;font-weight:800;border-radius:10px;padding:8px 12px;text-decoration:none';t.appendChild(a)}).observe(document.body,{childList:true,subtree:true})})();</script><style>
+</script><script>(function(){new MutationObserver(function(){var b=document.getElementById('dspLog');if(!b)return;var t=b.querySelector('.dl-top');if(!t||t.querySelector('.dl-pr'))return;var a=document.createElement('a');a.className='dl-pr';a.textContent='📦 Package reports';a.href='dispatch.html?d='+encodeURIComponent(typeof cur!=='undefined'?cur:'');a.style.cssText='margin-left:auto;background:#ff9900;color:#111;font-weight:800;border-radius:10px;padding:8px 12px;text-decoration:none';t.appendChild(a)}).observe(document.body,{childList:true,subtree:true})})();</script><style>
 #ckOv{position:fixed;inset:0;z-index:60;background:var(--bg);overflow:auto;padding:12px 12px 40px}
 #ckOv .ck-top{display:flex;gap:8px;align-items:center;margin-bottom:8px}#ckOv .ck-top button{border:0;background:var(--line);color:var(--ink);font:inherit;font-weight:800;border-radius:10px;padding:8px 12px;cursor:pointer}
 #ckOv h2{margin:4px 0 2px;font-size:20px}#ckOv .ck-sub{color:var(--mute);font-size:13px;margin-bottom:8px}
@@ -2019,11 +2023,11 @@ addEventListener('online',flushDay);setInterval(flushDay,60000);setTimeout(flush
 function esc2(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function t12(t){if(!t)return '—';var p=String(t).split(':');if(p.length<2)return t;var h=+p[0];return ((h%12)||12)+':'+p[1]+' '+(h<12?'AM':'PM')}
 var timer=null,data={};
-async function load(){var pw=null;try{pw=sessionStorage.getItem('dspPw')}catch(e){}
-  if(!pw){pw=prompt('Dispatch password');if(pw==null){close();return}try{sessionStorage.setItem('dspPw',pw)}catch(e){}}
+async function load(){var pw=null;try{pw=localStorage.getItem('dspPw')}catch(e){}
+  if(!pw){pw=prompt('Dispatch password');if(pw==null){close();return}try{localStorage.setItem('dspPw',pw)}catch(e){}}
   var r=await fetch(SBU+'/rest/v1/rpc/read_driver_day',{method:'POST',headers:{'apikey':SBK,'Content-Type':'application/json'},body:JSON.stringify({pw:pw,day:cur})}).catch(function(){return null});
   if(!r){document.getElementById('ckUpd').textContent='No connection — showing last check';return}
-  if(!r.ok){var t=await r.text();if(/denied/.test(t)){try{sessionStorage.removeItem('dspPw')}catch(e){}alert('Wrong password');close();return}document.getElementById('ckUpd').textContent='Could not load';return}
+  if(!r.ok){var t=await r.text();if(/denied/.test(t)){try{localStorage.removeItem('dspPw')}catch(e){}alert('Wrong password');close();return}document.getElementById('ckUpd').textContent='Could not load';return}
   var rows=await r.json();data={};rows.forEach(function(x){data[x.driver]=x});draw();
   document.getElementById('ckUpd').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}
 function draw(){var g=document.getElementById('ckG');if(!g)return;
@@ -2032,8 +2036,8 @@ function draw(){var g=document.getElementById('ckG');if(!g)return;
   L.forEach(function(d){var x=data[d.n]||{},gk=['1','2','3','4','5'].indexOf(String(d.g||'').trim())>=0?String(d.g).trim():'0',all=CHECKS.every(function(k){return ckOn(x,k)});if(all)done++;
     h+='<button class="ck-b'+(all?' ck-all':'')+'" style="--c:var(--g'+gk+')" data-n="'+esc2(d.n)+'"><span class="nm">'+esc2(d.n)+'</span><span class="ck-d">'+CHECKS.map(function(k){return '<i'+(ckOn(x,k)?' style="background:'+k.c+';border-color:#fff"':'')+'></i>'}).join('')+'</span></button>'});
   g.innerHTML=h;g.querySelectorAll('.nm').forEach(function(el){var b=el.parentElement,W=b.clientWidth-6,H=b.clientHeight-28,f=17;el.style.fontSize=f+'px';while(f>9&&(el.scrollWidth>W||el.offsetHeight>H)){f-=.5;el.style.fontSize=f+'px'}});document.getElementById('ckSum').textContent=done+' of '+L.length+' drivers have everything in'}
-function close(){var o=document.getElementById('ckOv');if(o)o.remove();var i=document.querySelector('.ck-info');if(i)i.remove();clearInterval(timer)}
-window.openChecklist=function(){close();var o=document.createElement('div');o.id='ckOv';
+function close(){try{if(sessionStorage.getItem('dspView')==='ck')sessionStorage.setItem('dspView','log')}catch(e){}var o=document.getElementById('ckOv');if(o)o.remove();var i=document.querySelector('.ck-info');if(i)i.remove();clearInterval(timer)}
+window.openChecklist=function(){close();try{sessionStorage.setItem('dspView','ck')}catch(e){}var o=document.createElement('div');o.id='ckOv';
   var lbl=document.getElementById('dateLbl');var dl=(DAYS[cur]&&DAYS[cur].label)||cur;
   o.innerHTML='<div class="ck-top"><button id="ckX">‹ Back</button><span id="ckUpd" style="margin-left:auto;font-size:12px;color:var(--mute)"></span></div><h2>Driver Checklist</h2><div class="ck-sub">'+esc2(dl)+' · <span id="ckSum"></span></div><div class="ck-lg">'+CHECKS.map(function(k){return '<span><i style="display:inline-block;width:12px;height:12px;border-radius:50%;background:'+k.c+'"></i>'+k.l+'</span>'}).join('')+'<span>Tap a driver for details</span></div><div class="ck-g" id="ckG"></div>';
   document.body.appendChild(o);o.querySelector('#ckX').onclick=close;
