@@ -1812,7 +1812,7 @@ requestAnimationFrame(fit);
 .pp-b{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:6px}.pp-b button{padding:9px 2px;font-size:14px}
 .pp-b button{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:9px 4px;font:inherit;font-weight:800;cursor:pointer}
 .pp-b button.on.m{background:#DC2626;border-color:#DC2626;color:#fff}.pp-b button.on.d{background:#CA8A04;border-color:#CA8A04;color:#fff}.pp-b button.on.s{background:#7C3AED;border-color:#7C3AED;color:#fff}.pp-b button.on.k{background:#16A34A;border-color:#16A34A;color:#fff}
-.pp-u{background:#FEF3C7;color:#78350F;border:1px solid #F59E0B;border-radius:10px;padding:7px 8px;margin-top:6px;font-size:13px;font-weight:600}.pp-dg{display:flex;flex-wrap:wrap;gap:1px;margin:6px 0;font:700 16px ui-monospace,monospace;align-items:center}.pp-dg span{padding:0 1px}.pp-dg select{width:34px!important;flex:0 0 34px;text-align:center;font:800 16px ui-monospace,monospace;padding:2px 0;border:2px solid #F59E0B;border-radius:6px;background:#fff;color:#111}.pp-ok{border:0;background:#16A34A;color:#fff;font:inherit;font-weight:800;border-radius:8px;padding:7px 10px;cursor:pointer}.pp-add{margin-top:6px;border:1px dashed var(--line);background:none;color:var(--mute);border-radius:10px;padding:6px;width:100%;font:inherit;cursor:pointer}
+.pp-u{background:#FEF3C7;color:#78350F;border:1px solid #F59E0B;border-radius:10px;padding:7px 8px;margin-top:6px;font-size:13px;font-weight:600}.pp-dg{display:flex;flex-wrap:wrap;gap:1px;margin:6px 0;font:700 16px ui-monospace,monospace;align-items:center}.pp-dg span{padding:0 1px}.pp-dg select{width:34px!important;flex:0 0 34px;text-align:center;font:800 16px ui-monospace,monospace;padding:2px 0;border:2px solid #F59E0B;border-radius:6px;background:#fff;color:#111}.pp-ok{border:0;background:#16A34A;color:#fff;font:inherit;font-weight:800;border-radius:8px;padding:7px 10px;cursor:pointer}.pp-sup{width:100%;margin-top:10px;border:2px solid #2563EB;background:var(--card);color:#2563EB;border-radius:12px;padding:12px;font:inherit;font-weight:800;font-size:15px;cursor:pointer}.pp-add{margin-top:6px;border:1px dashed var(--line);background:none;color:var(--mute);border-radius:10px;padding:6px;width:100%;font:inherit;cursor:pointer}
 .pp-t{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.pp-t button,.pp-t a{border:0;border-radius:12px;padding:12px;font:inherit;font-weight:800;font-size:15px;text-align:center;text-decoration:none;cursor:pointer}
 .pp-t .s{background:#16A34A;color:#fff}.pp-t .c{background:var(--line);color:var(--ink)}
 .pp pre{white-space:pre-wrap;font:13px/1.35 ui-monospace,monospace;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px;margin:8px 0 0}
@@ -1941,6 +1941,16 @@ function tbaFix(ci,pi,p){if(p.tbaOk||!p.tba&&!p.bad)return '';
       all.forEach(function(d){o+='<option'+(d===ch?' selected':'')+'>'+d+'</option>'});h+='<select data-c="'+ci+'" data-p="'+pi+'" data-d="'+i+'">'+o+'</select>'}
     else h+='<span>'+esc(ch)+'</span>'}
   return h+'</div><button class="pp-ok" data-c="'+ci+'" data-p="'+pi+'" data-tok="1">✓ TBA is correct</button></div>'}
+var supOpen=false;
+function supMsg(){var a=load(),L={m:[],d:[],s:[]};
+  a.forEach(function(c){c.pk.forEach(function(p){if(p.st&&p.st!=='k')L[p.st].push('• '+(p.tba||'TBA unknown')+' — '+(p.addr||c.addr||'address unknown'))})});
+  if(!L.m.length&&!L.d.length&&!L.s.length)return '';
+  var d=new Date(cur+'T12:00:00'),ds=(d.getMonth()+1)+'/'+d.getDate();
+  var t='Hi, I need help with some packages on my route today ('+(drv.r||'')+', '+ds+').';
+  if(L.m.length)t+='\n\nMissing — not found in my van:\n'+L.m.join('\n');
+  if(L.d.length)t+='\n\nDamaged:\n'+L.d.join('\n');
+  if(L.s.length)t+='\n\nMissorted — not on my route / wrong bag:\n'+L.s.join('\n');
+  return t+'\n\nHow should I handle these? Thank you.'}
 function render(){
   var B=document.getElementById('ppBox');if(!B||!drv)return;var a=load(),t=msg();
   var h='<h4>Missing / Damaged / Missort Packages</h4><label class="pp-up">🖼️ Upload from gallery<input type="file" accept="image/*" multiple hidden id="ppIn"></label><div class="pp-st">'+esc(busy)+'</div>';
@@ -1954,19 +1964,24 @@ function render(){
     });
     h+='<button class="pp-add" data-addp="'+ci+'">+ Add package by hand</button></div>';
   });
-  if(t)h+='<pre>'+esc(t)+'</pre><div class="pp-t"><a class="s" href="sms:?&body='+encodeURIComponent(t)+'">💬 Text dispatch</a><button class="c" id="ppCopy">Copy text</button></div>';
+  if(t)h+='<pre>'+esc(t)+'</pre><div class="pp-t"><a class="s" href="sms:+12488810737?&body='+encodeURIComponent(t)+'">💬 Text dispatch</a><button class="c" id="ppCopy">Copy text</button></div>';
   else if(a.length)h+='<div class="pp-st">Tap Missing, Damaged or Missort on a package to build the dispatch text.</div>';
+  var st=supMsg();
+  if(st){h+='<button class="pp-sup" id="ppSup">🛟 Driver Support text'+(supOpen?' ▲':' ▼')+'</button>';
+    if(supOpen)h+='<pre>'+esc(st)+'</pre><div class="pp-t" style="grid-template-columns:1fr"><button class="c" id="ppSupCopy">📋 Copy for Driver Support</button></div>'}
   B.innerHTML=h;
 }
 document.addEventListener('change',function(e){var dd=e.target.dataset&&e.target.dataset.d;if(dd!=null&&e.target.closest('#ppBox')){var A=load(),P=A[+e.target.dataset.c].pk[+e.target.dataset.p];P.tba=P.tba.slice(0,+dd)+e.target.value+P.tba.slice(+dd+1);save(A);sendCard(A[+e.target.dataset.c]);render();return}if(e.target.id==='ppIn'){upload(e.target.files);e.target.value=''}else if(e.target.closest&&e.target.closest('#ppBox')&&e.target.dataset.f==='type'){var c=load()[+e.target.dataset.c];if(c)sendCard(c);render()}});
 document.addEventListener('input',function(e){var el=e.target;if(!el.closest||!el.closest('#ppBox')||!el.dataset.f)return;var a=load(),c=a[+el.dataset.c];if(!c)return;if(el.dataset.p!=null){c.pk[+el.dataset.p][el.dataset.f]=el.value;if(el.dataset.f==='tba'){var P=c.pk[+el.dataset.p];P.bad=!/^TBA\d{12}$/i.test(el.value.trim());P.tbaOk=!P.bad}}else{var old=c[el.dataset.f];c[el.dataset.f]=el.value;if(el.dataset.f==='addr')c.pk.forEach(function(q){if(!q.addr||q.addr===old)q.addr=el.value})}save(a);
-  var t=msg(),pre=document.querySelector('#ppBox pre');if(pre&&t){pre.textContent=t;document.querySelector('#ppBox .pp-t .s').href='sms:?&body='+encodeURIComponent(t)}});
+  var t=msg(),pre=document.querySelector('#ppBox pre');if(pre&&t){pre.textContent=t;document.querySelector('#ppBox .pp-t .s').href='sms:+12488810737?&body='+encodeURIComponent(t)}});
 document.addEventListener('focusout',function(e){if(e.target.closest&&e.target.closest('#ppBox')&&e.target.dataset.f){var c=load()[+e.target.dataset.c];if(c)sendCard(c);render()}});
 document.addEventListener('click',function(e){var el=e.target.closest&&e.target.closest('#ppBox button');if(!el)return;var a=load();
   if(el.dataset.tok){a[+el.dataset.c].pk[+el.dataset.p].tbaOk=true;save(a);sendCard(a[+el.dataset.c]);render();return}
   if(el.dataset.s){var p=a[+el.dataset.c].pk[+el.dataset.p];var was=p.st;p.st=p.st===el.dataset.s?'':el.dataset.s;save(a);if(was||p.st)send(a[+el.dataset.c],+el.dataset.p);upPhotos()}
   else if(el.dataset.del!=null){var dc=a[+el.dataset.del];dc.pk.forEach(function(p,pi){if(p.st&&p.st!=='k'){p.st='';send(dc,pi)}});a.splice(+el.dataset.del,1)}
   else if(el.dataset.addp!=null){a[+el.dataset.addp].pk.push({aid:'',tba:'',type:'',st:''})}
+  else if(el.id==='ppSup'){supOpen=!supOpen;render();return}
+  else if(el.id==='ppSupCopy'){var t2=supMsg();(navigator.clipboard?navigator.clipboard.writeText(t2):Promise.reject()).then(function(){el.textContent='Copied ✓ — paste it to Driver Support'},function(){var x=document.createElement('textarea');x.value=t2;document.body.appendChild(x);x.select();document.execCommand('copy');x.remove();el.textContent='Copied ✓ — paste it to Driver Support'});return}
   else if(el.id==='ppCopy'){var t=msg();(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){el.textContent='Copied ✓'},function(){var x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();document.execCommand('copy');x.remove();el.textContent='Copied ✓'});return}
   save(a);render();});
 window.ppRender=function(){busy='';render();flush()};
