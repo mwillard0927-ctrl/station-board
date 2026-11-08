@@ -1942,15 +1942,13 @@ function tbaFix(ci,pi,p){if(p.tbaOk||!p.tba&&!p.bad)return '';
     else h+='<span>'+esc(ch)+'</span>'}
   return h+'</div><button class="pp-ok" data-c="'+ci+'" data-p="'+pi+'" data-tok="1">✓ TBA is correct</button></div>'}
 var supOpen=false;
-function supMsg(){var a=load(),L={m:[],d:[],s:[]};
-  a.forEach(function(c){c.pk.forEach(function(p){if(p.st&&p.st!=='k')L[p.st].push('• '+(p.tba||'TBA unknown')+' — '+(p.addr||c.addr||'address unknown'))})});
-  if(!L.m.length&&!L.d.length&&!L.s.length)return '';
-  var d=new Date(cur+'T12:00:00'),ds=(d.getMonth()+1)+'/'+d.getDate();
-  var t='Hi, I need help with some packages on my route today ('+(drv.r||'')+', '+ds+').';
-  if(L.m.length)t+='\n\nMissing — not found in my van:\n'+L.m.join('\n');
-  if(L.d.length)t+='\n\nDamaged:\n'+L.d.join('\n');
-  if(L.s.length)t+='\n\nMissorted — not on my route / wrong bag:\n'+L.s.join('\n');
-  return t+'\n\nHow should I handle these? Thank you.'}
+function supMsg(){var a=load(),L=[],hasM=false,hasD=false;
+  a.forEach(function(c){c.pk.forEach(function(p){if(p.st==='m'||p.st==='d'){if(p.st==='m')hasM=true;else hasD=true;
+    L.push((p.tba||'TBA unknown')+' — '+(p.st==='m'?'Missing':'Damaged')+' — '+(p.addr||c.addr||'address unknown'))}})});
+  if(!L.length)return '';
+  var term=hasM&&hasD?'missing / damaged':hasM?'missing':'damaged',one=L.length===1;
+  return 'Hi, this is '+drv.n+'. I am pulled over and would like you to help me with marking '+(one?'this package':'these packages')+' as '+term+'.\n\n'+L.join('\n')+
+    '\n\nPlease let me know when you were able to mark '+(one?'this package':'these packages')+' as '+term+'.'}
 function render(){
   var B=document.getElementById('ppBox');if(!B||!drv)return;var a=load(),t=msg();
   var h='<h4>Missing / Damaged / Missort Packages</h4><label class="pp-up">🖼️ Upload from gallery<input type="file" accept="image/*" multiple hidden id="ppIn"></label><div class="pp-st">'+esc(busy)+'</div>';
