@@ -2133,4 +2133,83 @@ window.openTimesheet=function(){if(!drv)return;var o=document.getElementById('ts
   if(!get(drv.n,'in'))set(drv.n,'in',BASE);
   render()};
 })();
+</script><style>
+#plOv{position:fixed;inset:0;z-index:65;background:var(--bg);overflow:auto;padding:12px 16px 40px;color:var(--ink)}
+#plOv .pl-top{display:flex;gap:8px;align-items:center;margin-bottom:8px}#plOv .pl-top button{border:0;font:inherit;font-weight:800;border-radius:10px;padding:9px 12px;cursor:pointer}
+#plOv h2{margin:6px 0 2px;font-size:20px}#plOv .pl-sub{color:var(--mute);font-size:13px;margin-bottom:10px}
+.pl-l{columns:2;column-gap:18px;font-size:17px;font-variant-numeric:tabular-nums}.pl-l div{break-inside:avoid;padding:5px 2px;border-bottom:1px solid var(--line)}.pl-l b{display:inline-block;min-width:2.4em;text-align:right;margin-right:6px}
+</style>
+<script>
+(function(){
+function rowsFor(day){return parse(DAYS[day].rows).filter(function(d){return d.n}).map(function(d){var b=String(d.b||'').trim();return {b:b,num:/^\d+$/.test(b)?+b:Infinity,n:d.n}})
+  .sort(function(a,c){return a.num-c.num||a.n.localeCompare(c.n)})}
+function pdfText(s){return String(s).replace(/[^\x20-\x7E]/g,function(c){return {'—':'-','–':'-','·':'-','’':"'"}[c]||''}).replace(/([\\()])/g,'\\$1')}
+function makePdf(title,lines){
+  var W=612,H=792,M=54,lh=17,colW=(W-2*M)/2,perCol=Math.floor((H-2*M-50)/lh),perPage=perCol*2,pages=[];
+  for(var i=0;i<Math.max(lines.length,1);i+=perPage)pages.push(lines.slice(i,i+perPage));
+  var objs=[],add=function(s){objs.push(s);return objs.length};
+  var font=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'),bold=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
+  var pagesId=objs.length+1;objs.push(null);var kids=[];
+  pages.forEach(function(pl,pi){var c='BT /F2 18 Tf '+M+' '+(H-M)+' Td ('+pdfText(title)+') Tj ET\n';
+    if(pages.length>1)c+='BT /F1 10 Tf '+(W-M-60)+' '+(H-M)+' Td (Page '+(pi+1)+' of '+pages.length+') Tj ET\n';
+    c+='0.6 G '+M+' '+(H-M-12)+' m '+(W-M)+' '+(H-M-12)+' l S 0 G\n';
+    pl.forEach(function(L,k){var col=Math.floor(k/perCol),row=k%perCol,x=M+col*colW,y=H-M-40-row*lh;
+      c+='BT /F2 13 Tf '+x+' '+y+' Td ('+pdfText(L[0])+') Tj ET\nBT /F1 13 Tf '+(x+34)+' '+y+' Td ('+pdfText(L[1])+') Tj ET\n'});
+    var cs=add('<< /Length '+c.length+' >>\nstream\n'+c+'endstream');
+    kids.push(add('<< /Type /Page /Parent '+pagesId+' 0 R /MediaBox [0 0 '+W+' '+H+'] /Resources << /Font << /F1 '+font+' 0 R /F2 '+bold+' 0 R >> >> /Contents '+cs+' 0 R >>'))});
+  objs[pagesId-1]='<< /Type /Pages /Kids ['+kids.map(function(k){return k+' 0 R'}).join(' ')+'] /Count '+kids.length+' >>';
+  var cat=add('<< /Type /Catalog /Pages '+pagesId+' 0 R >>');
+  var out='%PDF-1.4\n',offs=[];objs.forEach(function(o,i){offs.push(out.length);out+=(i+1)+' 0 obj\n'+o+'\nendobj\n'});
+  var x=out.length;out+='xref\n0 '+(objs.length+1)+'\n0000000000 65535 f \n'+offs.map(function(o){return String(o).padStart(10,'0')+' 00000 n \n'}).join('')+'trailer\n<< /Size '+(objs.length+1)+' /Root '+cat+' 0 R >>\nstartxref\n'+x+'\n%%EOF';
+  return new Blob([out],{type:'application/pdf'})}
+function e3(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+window.makePhonePdf=function(day){var R=rowsFor(day),lbl=(DAYS[day].label||day).split(' · ')[0];
+  return {blob:makePdf('Phone List - '+lbl,R.map(function(r){return [(r.b||'--')+' -',r.n]})),rows:R,label:lbl}};
+window.openPhoneList=function(){var day=cur,P=makePhonePdf(day),url=URL.createObjectURL(P.blob),fname='Phone-List-'+day+'.pdf';
+  var o=document.getElementById('plOv');if(o)o.remove();o=document.createElement('div');o.id='plOv';
+  o.innerHTML='<div class="pl-top"><button id="plX" style="background:var(--line);color:var(--ink)">‹ Back</button><a id="plPdf" href="'+url+'" target="_blank" download="'+fname+'" style="margin-left:auto;background:#DC2626;color:#fff;font-weight:800;border-radius:10px;padding:9px 12px;text-decoration:none">📄 Open PDF</a></div>'+
+   '<h2>Sorted Phone List</h2><div class="pl-sub">'+e3(P.label)+' · '+P.rows.length+' drivers · phone / bag number – driver</div><div class="pl-l" style="--rows:'+Math.ceil(P.rows.length/6)+'">'+
+   P.rows.map(function(r){return '<div><b>'+e3(r.b||'—')+'</b>'+e3(r.n)+'</div>'}).join('')+'</div>';
+  document.body.appendChild(o);o.querySelector('#plX').onclick=function(){o.remove();URL.revokeObjectURL(url)};
+  try{window.open(url,'_blank')}catch(e){}};
+new MutationObserver(function(){var b=document.getElementById('dspLog');if(!b)return;var t=b.querySelector('.dl-top');if(!t||t.querySelector('.dl-pl'))return;var a=document.createElement('button');a.className='dl-pl';a.textContent='📱 Sorted Phone List';a.style.cssText='background:#2563EB;color:#fff;font-weight:800;border:0;border-radius:10px;padding:8px 12px;cursor:pointer';a.onclick=function(){window.openPhoneList()};t.appendChild(a)}).observe(document.body,{childList:true,subtree:true});
+})();
+</script><script>
+// layouts: list (num - name on one line) or tile (num above name)
+window.makePhonePdf2=function(day,cols,mode){
+  var R=parse(DAYS[day].rows).filter(function(d){return d.n}).map(function(d){var b=String(d.b||'').trim();return {b:b||'--',num:/^\d+$/.test(b)?+b:Infinity,n:d.n.replace(/[’]/g,"'")}}).sort(function(a,c){return a.num-c.num||a.n.localeCompare(c.n)});
+  var lbl=(DAYS[day].label||day).split(' · ')[0].replace(/, \d{4}$/,'');
+  var W=360,H=780,M=10,top=34,rows=Math.ceil(R.length/cols),colW=(W-2*M)/cols,rowH=(H-top-M)/rows;
+  var cv=document.createElement('canvas').getContext('2d');function w(t,f,b){cv.font=(b?'bold ':'')+f+'px Helvetica, Arial';return cv.measureText(t).width}
+  var fbig=0,fs;
+  if(mode==='tile'){
+    var maxNum=R.reduce(function(m,r){return w(r.b,1,true)>w(m,1,true)?r.b:m},'0');
+    fbig=Math.floor(Math.min((colW-8)/w(maxNum,1,true),rowH*0.42)*10)/10;
+    var room=rowH-fbig*1.05-8;
+    var fits=R.map(function(r){var ws=r.n.split(' '),two=ws.length>1?[ws[0],ws.slice(1).join(' ')]:null;
+      var one=Math.min((colW-6)/w(r.n,1,false),room/1.2),dbl=two?Math.min((colW-6)/Math.max(w(two[0],1,false),w(two[1],1,false)),room/2.3):0;return Math.max(one,dbl)});
+    var so=fits.slice().sort(function(a,b){return a-b});fs=Math.floor(so[Math.min(2,so.length-1)]*10)/10;
+    R.forEach(function(r,i){r.f=Math.min(fs,Math.floor(fits[i]*10)/10);var ws=r.n.split(' ');r.wrap=w(r.n,r.f,false)>colW-6&&ws.length>1;
+      if(r.wrap){var two=[ws[0],ws.slice(1).join(' ')];var mx=Math.max(w(two[0],1,false),w(two[1],1,false));r.f=Math.min(r.f,Math.floor((colW-6)/mx*10)/10)}else r.f=Math.min(r.f,Math.floor(Math.min((colW-6)/w(r.n,1,false),room/1.2)*10)/10)});
+  }else{
+    var fits=R.map(function(r){return Math.min((colW-6)/(w(r.b+' - ',1,true)+w(r.n,1,false)),rowH*0.62)});
+    var so=fits.slice().sort(function(a,b){return a-b});fs=Math.floor(so[Math.min(2,so.length-1)]*10)/10;
+    R.forEach(function(r,i){r.f=Math.min(fs,Math.floor(fits[i]*10)/10)});
+  }
+  var c='BT /F2 15 Tf '+M+' '+(H-22)+' Td (Phone List - '+lbl+') Tj ET\n0.6 G '+M+' '+(H-29)+' m '+(W-M)+' '+(H-29)+' l S 0 G\n';
+  R.forEach(function(r,k){var col=k%cols,row=Math.floor(k/cols),x=M+col*colW+3,y0=H-top-row*rowH;
+    if(col>0)c+='0.85 G '+(M+col*colW)+' '+(H-top)+' m '+(M+col*colW)+' '+(H-top-rows*rowH)+' l S 0 G\n';
+    c+='0.9 G '+(M+col*colW)+' '+(y0-rowH)+' m '+(M+(col+1)*colW)+' '+(y0-rowH)+' l S 0 G\n';
+    if(mode==='tile'){var f=r.f,fb=fbig,ln=r.wrap?[r.n.split(' ')[0],r.n.split(' ').slice(1).join(' ')]:[r.n];c+='BT /F2 '+fb.toFixed(1)+' Tf '+x+' '+(y0-fb*0.95).toFixed(1)+' Td ('+r.b+') Tj ET\n';ln.forEach(function(t,j){c+='BT /F1 '+f+' Tf '+x+' '+(y0-fb*0.95-f*1.12*(j+1)).toFixed(1)+' Td ('+t+') Tj ET\n'})}
+    else{var f=r.f,y=(y0-rowH/2-f*0.35).toFixed(1),nw=w(r.b+' - ',f,true);c+='BT /F2 '+f+' Tf '+x+' '+y+' Td ('+r.b+' -) Tj ET\nBT /F1 '+f+' Tf '+(x+nw).toFixed(1)+' '+y+' Td ('+r.n+') Tj ET\n'}});
+  var o=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R] /Count 1 >>','<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+W+' '+H+'] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>','<< /Length '+c.length+' >>\nstream\n'+c+'endstream'];
+  var out='%PDF-1.4\n',offs=[];o.forEach(function(s,i){offs.push(out.length);out+=(i+1)+' 0 obj\n'+s+'\nendobj\n'});var x=out.length;
+  out+='xref\n0 7\n0000000000 65535 f \n'+offs.map(function(v){return String(v).padStart(10,'0')+' 00000 n \n'}).join('')+'trailer\n<< /Size 7 /Root 1 0 R >>\nstartxref\n'+x+'\n%%EOF';
+  return {pdf:out,fs:fs}};
+
+window.makePhonePdf=function(day){var r=makePhonePdf2(day,6,'tile'),R=parse(DAYS[day].rows).filter(function(d){return d.n}).map(function(d){var b=String(d.b||'').trim();return {b:b,num:/^\d+$/.test(b)?+b:Infinity,n:d.n}}).sort(function(a,c){return a.num-c.num||a.n.localeCompare(c.n)});
+  var bytes=new Uint8Array(r.pdf.length);for(var i=0;i<r.pdf.length;i++)bytes[i]=r.pdf.charCodeAt(i)&255;
+  return {blob:new Blob([bytes],{type:'application/pdf'}),rows:R,label:(DAYS[day].label||day).split(' · ')[0]}};
 </script>
+<style>.pl-l{columns:auto!important;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0}.pl-l div{border:0;border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:4px 3px;font-size:clamp(11px,3.4vw,16px);line-height:1.1;min-height:calc((100dvh - 130px)/var(--rows,8));overflow-wrap:normal;word-break:keep-all}.pl-l b{font-size:clamp(18px,7vw,32px)!important;line-height:1}.pl-l b{display:block;min-width:0;text-align:left;margin:0;font-size:20px}</style>
+
