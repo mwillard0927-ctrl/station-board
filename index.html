@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#232f3e"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Station Board"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=2"><link rel="icon" href="icon-192.png?v=2"><script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));</script></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#232f3e"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Station Board"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=3"><link rel="icon" href="icon-192.png?v=3"><script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));</script></head><body>
 <title>Station Driver Board</title>
 <style>
 :root{--bg:#f3f4f6;--card:#fff;--ink:#111827;--mute:#6b7280;--line:#e5e7eb;--acc:#ff9900;--dark:#232f3e;
@@ -1812,7 +1812,7 @@ requestAnimationFrame(fit);
 .pp-b{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:6px}.pp-b button{padding:9px 2px;font-size:14px}
 .pp-b button{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:9px 4px;font:inherit;font-weight:800;cursor:pointer}
 .pp-b button.on.m{background:#DC2626;border-color:#DC2626;color:#fff}.pp-b button.on.d{background:#CA8A04;border-color:#CA8A04;color:#fff}.pp-b button.on.s{background:#7C3AED;border-color:#7C3AED;color:#fff}.pp-b button.on.k{background:#16A34A;border-color:#16A34A;color:#fff}
-.pp-u{background:#FEF3C7;color:#78350F;border:1px solid #F59E0B;border-radius:10px;padding:7px 8px;margin-top:6px;font-size:13px;font-weight:600}.pp-dg{display:flex;flex-wrap:wrap;gap:1px;margin:6px 0;font:700 16px ui-monospace,monospace;align-items:center}.pp-dg span{padding:0 1px}.pp-dg select{width:34px!important;flex:0 0 34px;text-align:center;font:800 16px ui-monospace,monospace;padding:2px 0;border:2px solid #F59E0B;border-radius:6px;background:#fff;color:#111}.pp-ok{border:0;background:#16A34A;color:#fff;font:inherit;font-weight:800;border-radius:8px;padding:7px 10px;cursor:pointer}.pp-sup{width:100%;margin-top:10px;border:2px solid #2563EB;background:var(--card);color:#2563EB;border-radius:12px;padding:12px;font:inherit;font-weight:800;font-size:15px;cursor:pointer}.pp-add{margin-top:6px;border:1px dashed var(--line);background:none;color:var(--mute);border-radius:10px;padding:6px;width:100%;font:inherit;cursor:pointer}
+.pp-u{background:#FEF3C7;color:#78350F;border:1px solid #F59E0B;border-radius:10px;padding:7px 8px;margin-top:6px;font-size:13px;font-weight:600}.pp-dg{display:flex;flex-wrap:wrap;gap:1px;margin:6px 0;font:700 16px ui-monospace,monospace;align-items:center}.pp-dg span{padding:0 1px}.pp-dg select{width:34px!important;flex:0 0 34px;text-align:center;font:800 16px ui-monospace,monospace;padding:2px 0;border:2px solid #F59E0B;border-radius:6px;background:#fff;color:#111}.pp-ok{border:0;background:#16A34A;color:#fff;font:inherit;font-weight:800;border-radius:8px;padding:7px 10px;cursor:pointer}.pp-sup2{white-space:nowrap;font-size:14px!important;border:2px solid #2563EB;background:var(--card);color:#2563EB;border-radius:12px;padding:10px 6px;font:inherit;font-weight:800;font-size:15px;cursor:pointer}.pp-sup2.on{background:#2563EB;color:#fff}.pp-sup{width:100%;margin-top:10px;border:2px solid #2563EB;background:var(--card);color:#2563EB;border-radius:12px;padding:12px;font:inherit;font-weight:800;font-size:15px;cursor:pointer}.pp-add{margin-top:6px;border:1px dashed var(--line);background:none;color:var(--mute);border-radius:10px;padding:6px;width:100%;font:inherit;cursor:pointer}
 .pp-t{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.pp-t button,.pp-t a{border:0;border-radius:12px;padding:12px;font:inherit;font-weight:800;font-size:15px;text-align:center;text-decoration:none;cursor:pointer}
 .pp-t .s{background:#16A34A;color:#fff}.pp-t .c{background:var(--line);color:var(--ink)}
 .pp pre{white-space:pre-wrap;font:13px/1.35 ui-monospace,monospace;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px;margin:8px 0 0}
@@ -1924,7 +1924,7 @@ function msg(){
   a.forEach(function(c){c.pk.forEach(function(p){if(p.st&&p.st!=='k')({m:M,d:D,s:S}[p.st]).push('• '+(p.addr||c.addr||'Address ?')+' — Aid '+(p.aid||'?')+' — '+(p.tba||'TBA ?')+((p.bad||(p.unsure&&p.unsure.length))&&!p.tbaOk?' (TBA not verified)':'')+(p.type?' ('+p.type.replace(/^\((\w+)\) /,'$1 ')+')':''))})});
   if(!M.length&&!D.length&&!S.length)return '';
   var d=new Date(cur+'T12:00:00'),ds=(d.getMonth()+1)+'/'+d.getDate();
-  var t='Package report — '+drv.n+' · Route '+(drv.r||'?')+' · '+ds;
+  var t=drv.n+' — Package report';
   if(M.length)t+='\n\nMISSING ('+M.length+'):\n'+M.join('\n');
   if(D.length)t+='\n\nDAMAGED ('+D.length+'):\n'+D.join('\n');
   if(S.length)t+='\n\nMISSORT ('+S.length+'):\n'+S.join('\n');
@@ -1947,7 +1947,7 @@ function supMsg(){var a=load(),L=[],hasM=false,hasD=false;
     L.push((p.tba||'TBA unknown')+' — '+(p.st==='m'?'Missing':'Damaged')+' — '+(p.addr||c.addr||'address unknown'))}})});
   if(!L.length)return '';
   var term=hasM&&hasD?'missing / damaged':hasM?'missing':'damaged',one=L.length===1;
-  return 'Hi, this is '+drv.n+'. I am pulled over and would like you to help me with marking '+(one?'this package':'these packages')+' as '+term+'.\n\n'+L.join('\n')+
+  return 'Hi, this is '+drv.n+'. I am currently pulled over and would like you to help me with marking '+(one?'this package':'these packages')+' as '+term+'.\n\n'+L.join('\n')+
     '\n\nPlease let me know when you were able to mark '+(one?'this package':'these packages')+' as '+term+'.'}
 function render(){
   var B=document.getElementById('ppBox');if(!B||!drv)return;var a=load(),t=msg();
@@ -1962,10 +1962,10 @@ function render(){
     });
     h+='<button class="pp-add" data-addp="'+ci+'">+ Add package by hand</button></div>';
   });
-  if(t)h+='<pre>'+esc(t)+'</pre><div class="pp-t"><a class="s" href="sms:+12488810737?&body='+encodeURIComponent(t)+'">💬 Text dispatch</a><button class="c" id="ppCopy">Copy text</button></div>';
-  else if(a.length)h+='<div class="pp-st">Tap Missing, Damaged or Missort on a package to build the dispatch text.</div>';
   var st=supMsg();
-  if(st){h+='<button class="pp-sup" id="ppSup">🛟 Driver Support text'+(supOpen?' ▲':' ▼')+'</button>';
+  if(t)h+='<pre>'+esc(t)+'</pre><div class="pp-t"'+(st?'':' style="grid-template-columns:1fr"')+'><a class="s" href="sms:+12488810737?&body='+encodeURIComponent(t)+'">💬 Text dispatch</a>'+(st?'<button class="pp-sup2'+(supOpen?' on':'')+'" id="ppSup">🛟 Driver Support '+(supOpen?'▴':'▾')+'</button>':'')+'</div>';
+  else if(a.length)h+='<div class="pp-st">Tap Missing, Damaged or Missort on a package to build the dispatch text.</div>';
+  if(st){
     if(supOpen)h+='<pre>'+esc(st)+'</pre><div class="pp-t" style="grid-template-columns:1fr"><button class="c" id="ppSupCopy">📋 Copy for Driver Support</button></div>'}
   B.innerHTML=h;
 }

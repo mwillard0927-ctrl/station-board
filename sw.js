@@ -1,5 +1,5 @@
 // Network-first: always grabs the newest upload, falls back to saved copy offline
-const C='station-board-v2';
+const C='station-board-v3';
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(['./','index.html','manifest.json','icon.png','icon-192.png','apple-touch-icon.png','dispatch.html'])))});
 self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
 self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;
