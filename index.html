@@ -125,6 +125,7 @@ dialog input{width:100%;font-size:26px;padding:12px;border-radius:12px;border:2p
   </div>
   <div class="btns">
     <div id="ldBox" class="ld"></div><div id="dPk" class="pkbox"></div>
+    <button class="btn" id="tsBtn" onclick="openTimesheet()" style="border-color:#232f3e">📝 End of Day Timesheet<span class="val" id="vTs" style="color:#232f3e">Tap to fill out &amp; sign</span></button>
     <div id="ppBox" class="pp"></div>
     <button class="btn" onclick="openDlg('mileage')">End of Day Mileage<span class="val" id="vMileage">Tap to enter</span></button>
     <div class="btns two">
@@ -1527,7 +1528,7 @@ const key=(n,f)=>`rs|${cur}|${window.cyc0?"c0|":""}${n}|${f}`;
 const SEED={"rs|2026-11-06|Matt W|in":"09:24","rs|2026-11-06|Matt W|out":"17:42","rs|2026-11-03|Matt W|mileage":"18436","rs|2026-11-03|Matt W|in":"09:18","rs|2026-11-03|Matt W|out":"17:31","rs|2026-11-02|Matt W|mileage":"20319","rs|2026-11-02|Matt W|in":"09:23","rs|2026-11-02|Matt W|out":"17:13","rs|2026-10-31|Matt W|mileage":"3096","rs|2026-10-31|Matt W|in":"09:27","rs|2026-10-31|Matt W|out":"19:02","rs|2026-10-30|Matt W|mileage":"16655","rs|2026-10-30|Matt W|in":"09:26","rs|2026-10-30|Matt W|out":"19:02","rs|2026-10-24|Matt W|mileage":"28538","rs|2026-10-24|Matt W|in":"09:26","rs|2026-10-24|Matt W|out":"19:04"};
 const get=(n,f)=>{let v=null;try{v=localStorage.getItem(key(n,f))}catch(e){v=mem[key(n,f)]}return v??SEED[key(n,f)]??null};
 const mem={};
-const set=(n,f,v)=>{mem[key(n,f)]=v;try{localStorage.setItem(key(n,f),v)}catch(e){}};
+const set=(n,f,v)=>{mem[key(n,f)]=v;try{localStorage.setItem(key(n,f),v)}catch(e){};try{window.sendDay&&sendDay(n,f,v)}catch(e){}};
 function fmt12(t){if(!t)return null;let[h,m]=t.split(':');h=+h;return `${(h%12)||12}:${m} ${h<12?'AM':'PM'}`}
 
 let focusG=null;
@@ -1664,7 +1665,7 @@ function route(){
   const m=get(drv.n,'mileage');
   vMileage.textContent=m?Number(m).toLocaleString()+' mi':'Tap to enter';
   vIn.textContent=fmt12(get(drv.n,'in'))||'Tap to set';
-  vOut.textContent=fmt12(get(drv.n,'out'))||'Tap to set';
+  vOut.textContent=fmt12(get(drv.n,'out'))||'Tap to set';try{var _sg=get(drv.n,'signed');document.getElementById('vTs').textContent=_sg?'✓ Signed '+new Date(+_sg).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'Tap to fill out & sign'}catch(e){}
   window.scrollTo(0,0);
 }
 function openDlg(f){
@@ -1985,4 +1986,151 @@ document.addEventListener('click',function(e){var el=e.target.closest&&e.target.
 window.ppRender=function(){busy='';render();flush()};
 render();
 })();
-</script><script>(function(){new MutationObserver(function(){var b=document.getElementById('dspLog');if(!b)return;var t=b.querySelector('.dl-top');if(!t||t.querySelector('.dl-pr'))return;var a=document.createElement('a');a.className='dl-pr';a.textContent='📦 Package reports';a.href='dispatch.html';a.style.cssText='margin-left:auto;background:#ff9900;color:#111;font-weight:800;border-radius:10px;padding:8px 12px;text-decoration:none';t.appendChild(a)}).observe(document.body,{childList:true,subtree:true})})();</script>
+</script><script>(function(){new MutationObserver(function(){var b=document.getElementById('dspLog');if(!b)return;var t=b.querySelector('.dl-top');if(!t||t.querySelector('.dl-pr'))return;var a=document.createElement('a');a.className='dl-pr';a.textContent='📦 Package reports';a.href='dispatch.html';a.style.cssText='margin-left:auto;background:#ff9900;color:#111;font-weight:800;border-radius:10px;padding:8px 12px;text-decoration:none';t.appendChild(a)}).observe(document.body,{childList:true,subtree:true})})();</script><style>
+#ckOv{position:fixed;inset:0;z-index:60;background:var(--bg);overflow:auto;padding:12px 12px 40px}
+#ckOv .ck-top{display:flex;gap:8px;align-items:center;margin-bottom:8px}#ckOv .ck-top button{border:0;background:var(--line);color:var(--ink);font:inherit;font-weight:800;border-radius:10px;padding:8px 12px;cursor:pointer}
+#ckOv h2{margin:4px 0 2px;font-size:20px}#ckOv .ck-sub{color:var(--mute);font-size:13px;margin-bottom:8px}
+.ck-lg{display:flex;flex-wrap:wrap;gap:10px;font-size:13px;margin:6px 0 10px;color:var(--mute)}.ck-lg span{display:flex;align-items:center;gap:5px}
+.ck-g{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.ck-b{position:relative;border:0;border-radius:9px;color:#fff;background:var(--c);height:80px;padding:3px 3px 22px;font:inherit;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.02;overflow:hidden}
+.ck-b .nm{font-size:16px;overflow-wrap:normal;word-break:keep-all;max-width:100%}
+.ck-d{position:absolute;left:50%;transform:translateX(-50%);bottom:4px;display:flex;justify-content:center;gap:4px;background:rgba(0,0,0,.55);border-radius:10px;padding:3px 5px}
+.ck-d i{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,.85);background:transparent;box-sizing:border-box}
+.ck-all{outline:3px solid #16A34A;outline-offset:1px}
+.ck-info{position:fixed;left:12px;right:12px;bottom:16px;z-index:61;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,.3);font-size:15px}
+.ck-info b{font-size:17px}.ck-info div{display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid var(--line)}
+</style>
+<script>
+(function(){
+var SBU='https://ksuvjhutalvwgikvsdeu.supabase.co',SBK='sb_publishable_v60aHIwkGcr_a9UvWTb9jA_7qcffk8B';
+// Which circle means what (bottom row, left to right): change order/labels here later
+var CHECKS=[{f:'clock_in',c:'#DC2626',l:'Clocked in'},{f:'clock_out',c:'#EAB308',l:'Clocked out'},{f:'mileage',c:'#16A34A',l:'Mileage'}];
+var COL={in:'clock_in',out:'clock_out',mileage:'mileage',lunchS:'lunch_start',lunchE:'lunch_end',fuel:'fueled',signed:'signed_at',van:'van',route:'route',stage:'stage'};
+function qG(){try{return JSON.parse(localStorage.getItem('dd|outbox')||'[]')}catch(e){return []}}
+function qS(q){try{localStorage.setItem('dd|outbox',JSON.stringify(q))}catch(e){}}
+var busy=false;
+function flushDay(){if(busy)return;var q=qG().slice(0,1);if(!q.length)return;busy=true;
+  fetch(SBU+'/rest/v1/driver_day?on_conflict=report_date,driver',{method:'POST',headers:{'apikey':SBK,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(q.map(function(x){var o={};for(var k in x)if(k!=='_t')o[k]=x[k];return o}))})
+  .then(function(r){busy=false;if(r.ok){var n=qG();qS(n.filter(function(x){return !q.some(function(y){return y.report_date===x.report_date&&y.driver===x.driver&&y._t===x._t})}));flushDay()}},function(){busy=false})}
+window.sendDay=function(n,f,v){var c=COL[f];if(!c||typeof cur==='undefined')return;var q=qG(),row=q.filter(function(x){return x.report_date===cur&&x.driver===n})[0];
+  if(!row){row={report_date:cur,driver:n};q.push(row)}row[c]=v||null;row._t=Date.now();qS(q);flushDay()};
+addEventListener('online',flushDay);setInterval(flushDay,60000);setTimeout(flushDay,3000);
+
+function esc2(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function t12(t){if(!t)return '—';var p=String(t).split(':');if(p.length<2)return t;var h=+p[0];return ((h%12)||12)+':'+p[1]+' '+(h<12?'AM':'PM')}
+var timer=null,data={};
+async function load(){var pw=null;try{pw=sessionStorage.getItem('dspPw')}catch(e){}
+  if(!pw){pw=prompt('Dispatch password');if(pw==null){close();return}try{sessionStorage.setItem('dspPw',pw)}catch(e){}}
+  var r=await fetch(SBU+'/rest/v1/rpc/read_driver_day',{method:'POST',headers:{'apikey':SBK,'Content-Type':'application/json'},body:JSON.stringify({pw:pw,day:cur})}).catch(function(){return null});
+  if(!r){document.getElementById('ckUpd').textContent='No connection — showing last check';return}
+  if(!r.ok){var t=await r.text();if(/denied/.test(t)){try{sessionStorage.removeItem('dspPw')}catch(e){}alert('Wrong password');close();return}document.getElementById('ckUpd').textContent='Could not load';return}
+  var rows=await r.json();data={};rows.forEach(function(x){data[x.driver]=x});draw();
+  document.getElementById('ckUpd').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}
+function draw(){var g=document.getElementById('ckG');if(!g)return;
+  var L=parse(DAYS[cur].rows).filter(function(d){return d.n}).sort(function(a,b){return a.n.localeCompare(b.n)});
+  var done=0,h='';
+  L.forEach(function(d){var x=data[d.n]||{},gk=['1','2','3','4','5'].indexOf(String(d.g||'').trim())>=0?String(d.g).trim():'0',all=CHECKS.every(function(k){return x[k.f]});if(all)done++;
+    h+='<button class="ck-b'+(all?' ck-all':'')+'" style="--c:var(--g'+gk+')" data-n="'+esc2(d.n)+'"><span class="nm">'+esc2(d.n)+'</span><span class="ck-d">'+CHECKS.map(function(k){return '<i'+(x[k.f]?' style="background:'+k.c+';border-color:#fff"':'')+'></i>'}).join('')+'</span></button>'});
+  g.innerHTML=h;g.querySelectorAll('.nm').forEach(function(el){var b=el.parentElement,W=b.clientWidth-6,H=b.clientHeight-28,f=17;el.style.fontSize=f+'px';while(f>9&&(el.scrollWidth>W||el.offsetHeight>H)){f-=.5;el.style.fontSize=f+'px'}});document.getElementById('ckSum').textContent=done+' of '+L.length+' drivers have everything in'}
+function close(){var o=document.getElementById('ckOv');if(o)o.remove();var i=document.querySelector('.ck-info');if(i)i.remove();clearInterval(timer)}
+window.openChecklist=function(){close();var o=document.createElement('div');o.id='ckOv';
+  var lbl=document.getElementById('dateLbl');var dl=(DAYS[cur]&&DAYS[cur].label)||cur;
+  o.innerHTML='<div class="ck-top"><button id="ckX">‹ Back</button><span id="ckUpd" style="margin-left:auto;font-size:12px;color:var(--mute)"></span></div><h2>Driver Checklist</h2><div class="ck-sub">'+esc2(dl)+' · <span id="ckSum"></span></div><div class="ck-lg">'+CHECKS.map(function(k){return '<span><i style="display:inline-block;width:12px;height:12px;border-radius:50%;background:'+k.c+'"></i>'+k.l+'</span>'}).join('')+'<span>Tap a driver for details</span></div><div class="ck-g" id="ckG"></div>';
+  document.body.appendChild(o);o.querySelector('#ckX').onclick=close;
+  o.addEventListener('click',function(e){var b=e.target.closest('.ck-b');var old=document.querySelector('.ck-info');if(old)old.remove();if(!b)return;var x=data[b.dataset.n]||{};
+    var p=document.createElement('div');p.className='ck-info';p.innerHTML='<b>'+esc2(b.dataset.n)+'</b><div><span>Clocked in</span><span>'+t12(x.clock_in)+'</span></div><div><span>Clocked out</span><span>'+t12(x.clock_out)+'</span></div><div><span>End mileage</span><span>'+esc2(x.mileage||'—')+'</span></div><div><span>Lunch</span><span>'+(x.lunch_start?t12(x.lunch_start)+' – '+t12(x.lunch_end):'—')+'</span></div><div><span>Fueled up</span><span>'+(x.fueled==='yes'?'YES':'NO')+'</span></div><div><span>Timesheet signed</span><span>'+(x.signed_at?'✓ '+new Date(+x.signed_at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'—')+'</span></div>';p.onclick=function(){p.remove()};document.body.appendChild(p)});
+  draw();load();timer=setInterval(load,30000)};
+new MutationObserver(function(){var b=document.getElementById('dspLog');if(!b)return;var t=b.querySelector('.dl-top');if(!t||t.querySelector('.dl-ck'))return;var a=document.createElement('button');a.className='dl-ck';a.textContent='🚦 Driver Checklist';a.style.cssText='background:#16A34A;color:#fff;font-weight:800;border:0;border-radius:10px;padding:8px 12px;cursor:pointer';a.onclick=function(){window.openChecklist()};var pr=t.querySelector('.dl-pr');pr?t.insertBefore(a,pr):t.appendChild(a)}).observe(document.body,{childList:true,subtree:true});
+})();
+</script><link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+<style>
+#tsOv{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.55);overflow:auto;padding:10px}
+.ts{max-width:560px;margin:0 auto;background:#fff;color:#111;border-radius:10px;padding:16px 14px 18px;font-family:Arial,Helvetica,sans-serif;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.ts h2{text-align:center;margin:0 0 10px;font-size:21px;letter-spacing:.03em}
+.ts-x{float:right;border:0;background:#e5e7eb;border-radius:8px;font-size:15px;font-weight:800;padding:6px 10px;cursor:pointer}
+.ts-g{display:grid;grid-template-columns:1.15fr 1fr;gap:14px}
+.ts-f{display:flex;align-items:flex-end;gap:6px;margin:7px 0;font-weight:700;font-size:14px}
+.ts-f span{white-space:nowrap}.ts-f b,.ts-f input{flex:1;min-width:0;border:0;border-bottom:1.5px solid #111;font:600 16px Arial;color:#1d4ed8;padding:2px 2px;background:transparent}
+.ts-tb{width:100%;border-collapse:collapse;font-size:12.5px}.ts-tb th{font-size:12px;text-decoration:underline;padding:2px}.ts-tb td{border-bottom:1px solid #111;padding:3px 2px;color:#1d4ed8;font-weight:700;height:19px}.ts-tb td:first-child{color:#111;font-weight:400;border:0;width:16px;text-align:right;padding-right:4px}
+.ts-lu{display:flex;align-items:center;gap:8px;width:100%;margin:9px 0 2px;border:1.5px solid #111;border-radius:8px;background:#f9fafb;font:800 14px Arial;color:#111;padding:8px 10px;cursor:pointer;text-align:left}.ts-lu small{font-weight:700;color:#1d4ed8;font-size:13px}.ts-lu em{margin-left:auto;font-style:normal}.ts-lu.open{border-radius:8px 8px 0 0}.ts-lb{border:1.5px solid #111;border-top:0;border-radius:0 0 8px 8px;padding:2px 8px 6px;margin-bottom:4px}.ts-in{flex:1;min-width:0;border:0;border-bottom:1.5px solid #111;background:transparent;font:800 17px Arial;text-align:left;padding:2px;cursor:pointer}.ts-in small{font-size:11px;color:#6b7280}.ts-syn{font:700 12.5px Arial;margin:-4px 0 4px 64px}#tsPick{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px}.tp-box{background:#fff;color:#111;border-radius:14px;width:100%;max-width:340px;overflow:hidden;font-family:Arial}.tp-h{padding:12px 14px;font-weight:800;font-size:17px;border-bottom:1px solid #e5e7eb}.tp-h small{display:block;font-weight:600;font-size:12px;color:#6b7280}.tp-l{max-height:55vh;overflow-y:auto}.tp-l button{display:flex;justify-content:space-between;width:100%;border:0;border-bottom:1px solid #f3f4f6;background:#fff;padding:12px 14px;font:700 16px Arial;cursor:pointer;text-align:left}.tp-l button span{font-weight:600;font-size:13px;opacity:.75}.tp-l .e{color:#DC2626}.tp-l .l{color:#111}.tp-l .z{background:#F3F4F6;color:#111;font-weight:900}.tp-l .sel{outline:3px solid #ff9900;outline-offset:-3px}.tp-c{width:100%;border:0;border-top:1px solid #e5e7eb;background:#fff;padding:13px;font:800 15px Arial;color:#6b7280;cursor:pointer}.ts-caut{border:5px solid transparent;border-radius:8px;padding:2px 6px 6px;background:linear-gradient(#fff,#fff) padding-box,repeating-linear-gradient(-45deg,#111 0 10px,#FACC15 10px 20px) border-box;margin:4px -4px}.ts-caut .ts-syn{margin-left:0}.ts-miss{background:#FEF9C3;color:#111;font:800 12.5px Arial;border-radius:6px;padding:6px 8px;margin-top:4px}.ts-mi{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:4px 0}.ts-mi button,.ts-cam{border:1.5px solid #111;border-radius:8px;background:#f9fafb;font:800 13.5px Arial;color:#111;padding:9px 4px;text-align:center;cursor:pointer}.ts-mn{font-size:12px;color:#92400E;background:#FEF3C7;border-radius:6px;padding:5px 7px;margin-top:4px}.ts-fu{display:flex;align-items:center;gap:10px;margin:14px 0 4px;font-weight:700}
+.ts-tg{display:inline-flex;border:2px solid #111;border-radius:20px;overflow:hidden}.ts-tg button{border:0;background:#fff;font:800 14px Arial;padding:6px 14px;cursor:pointer;color:#111}.ts-tg button.on{background:#111;color:#fff}
+.ts-sig{margin-top:16px;display:flex;align-items:flex-end;gap:8px;font-weight:700}.ts-sig div{flex:1;border-bottom:1.5px solid #111;min-height:44px;font:600 30px 'Dancing Script',cursive;color:#1d4ed8;padding-left:6px}
+.ts-sb{display:block;width:100%;margin-top:14px;border:0;border-radius:12px;padding:14px;font:800 17px Arial;cursor:pointer;background:#ff9900;color:#111}.ts-sb.done{background:#16A34A;color:#fff}
+.ts-note{font-size:12px;color:#6b7280;margin-top:8px;text-align:center}
+@media (max-width:420px){.ts-g{gap:8px}.ts-f{font-size:12.5px}.ts-f b,.ts-f input{font-size:14px}}
+</style>
+<script>
+(function(){
+function e2(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+var lunchOpen=false,miOpen=false,miNote='',BASE='09:20';
+function mins(t){var p=String(t).split(':');return (+p[0])*60+(+p[1])}
+function hhmm(m){m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
+function openPick(){var n=drv.n,curv=mins(get(n,'in')||BASE)-mins(BASE),h='';
+  for(var i=60;i>=1;i--)h+='<button data-d="'+(-i)+'" class="e'+(curv===-i?' sel':'')+'">+'+i+' minute'+(i>1?'s':'')+' early <span>'+fmt12(hhmm(mins(BASE)-i))+'</span></button>';
+  h+='<button data-d="0" class="z'+(curv===0?' sel':'')+'">9:20 AM <span>on time</span></button>';
+  for(var j=1;j<=120;j++)h+='<button data-d="'+j+'" class="l'+(curv===j?' sel':'')+'">+'+j+' minute'+(j>1?'s':'')+' late <span>'+fmt12(hhmm(mins(BASE)+j))+'</span></button>';
+  var p=document.createElement('div');p.id='tsPick';p.innerHTML='<div class="tp-box"><div class="tp-h">Time IN <small>scroll up = early · down = late</small></div><div class="tp-l">'+h+'</div><button class="tp-c">Cancel</button></div>';
+  document.body.appendChild(p);var l=p.querySelector('.tp-l'),sel=p.querySelector('.sel')||p.querySelector('.z');requestAnimationFrame(function(){l.scrollTop=sel.offsetTop-l.offsetTop-l.clientHeight/2+sel.offsetHeight/2});
+  p.addEventListener('click',function(e){var b=e.target.closest('button');if(e.target===p||(b&&b.classList.contains('tp-c'))){p.remove();return}if(!b||b.dataset.d==null)return;set(drv.n,'in',hhmm(mins(BASE)+(+b.dataset.d)));p.remove();render()})}
+function render(){var o=document.getElementById('tsOv');if(!o||!drv)return;var d=drv,n=d.n;
+  var dt=new Date(cur+'T12:00:00'),ds=(dt.getMonth()+1)+'-'+dt.getDate()+'-'+String(dt.getFullYear()).slice(2);
+  var LD=((typeof LOAD!=='undefined'?LOAD:{})[cur]||{})[String(d.r||'').replace(/\s+/,' ')],bags=LD?LD.b:[];
+  var rows='';for(var i=0;i<20;i++){var b=bags[i];rows+='<tr><td>'+(i+1)+'</td><td>'+(b?e2(b[1]):'')+'</td><td>'+(b?e2(b[0]||''):'')+'</td></tr>'}
+  var fuel=get(n,'fuel')==='yes',sg=get(n,'signed');
+  var stg=(d.s||'').trim().replace(/^STG\.?/i,'');
+  o.innerHTML='<div class="ts"><button class="ts-x" id="tsX">✕ Close</button><h2>DBE LOGISTICS TIMESHEET</h2>'+
+  '<div class="ts-g"><div>'+
+   '<div class="ts-f"><span>Name:</span><b>'+e2(n)+'</b></div>'+
+   '<div class="ts-f"><span>Van #:</span><b>'+e2(d.v||'')+'</b></div>'+
+   '<div class="ts-f"><span>Route:</span><b>'+e2(d.r||'')+'</b></div>'+
+   '<div class="ts-f"><span>Stage:</span><b>'+e2(stg)+'</b></div>'+
+   '<div style="height:10px"></div>'+
+   (function(){var v=get(n,'in')||BASE,df=mins(v)-mins(BASE),col=df<0?'#DC2626':'#111';
+     var miss=mins(v)>mins('09:30');
+     return (miss?'<div class="ts-caut">':'')+'<div class="ts-f"><span>Time IN:</span><button class="ts-in" id="tsIn" style="color:'+col+';border-bottom-color:'+col+'">'+fmt12(v)+' <small>▾</small></button></div>'+
+     (df?'<div class="ts-syn" style="color:'+col+'">('+Math.abs(df)+' minute'+(Math.abs(df)>1?'s':'')+' '+(df<0?'early':'late')+')</div>':'')+
+     (miss?'<div class="ts-miss">⚠️ You missed the morning briefing today. Please show up on time.</div></div>':'')})()+
+   (function(){var ls=get(n,'lunchS'),le=get(n,'lunchE'),sum=ls?fmt12(ls)+(le?' – '+fmt12(le):''):'';
+     return '<button class="ts-lu'+(lunchOpen?' open':'')+'" id="tsLunch">🍴 Lunch'+(sum?' <small>'+e2(sum)+'</small>':'')+'<em>'+(lunchOpen?'▴':'▾')+'</em></button>'+
+     (lunchOpen?'<div class="ts-lb"><div class="ts-f"><span>Start:</span><input type="time" data-f="lunchS" value="'+e2(ls||'')+'"></div><div class="ts-f"><span>End:</span><input type="time" data-f="lunchE" value="'+e2(le||'')+'"></div></div>':'')})()+
+   '<div class="ts-f"><span>Time OUT:</span><input type="time" data-f="out" value="'+e2(get(n,'out')||'')+'"></div>'+
+   '<div class="ts-f" style="margin-top:14px"><span>End of Shift Mileage:</span></div>'+
+   '<div class="ts-mi"><button id="tsMType">⌨️ Type it in</button><label class="ts-cam">📷 Photo<input type="file" accept="image/*" capture="environment" id="tsMCam" hidden></label></div>'+
+   ((get(n,'mileage')||miOpen)?'<div class="ts-f"><input inputmode="numeric" data-f="mileage" id="tsMIn" placeholder="Odometer" value="'+e2(get(n,'mileage')||'')+'"'+(miNote?' style="background:#FEF3C7"':'')+'></div>':'')+
+   (miNote?'<div class="ts-mn">'+e2(miNote)+'</div>':'')+
+   '<div class="ts-fu"><span>Fueled up:</span><span class="ts-tg"><button data-fu="yes" class="'+(fuel?'on':'')+'">YES</button><button data-fu="no" class="'+(fuel?'':'on')+'">NO</button></span></div>'+
+  '</div><div>'+
+   '<div class="ts-f"><span>Date:</span><b>'+ds+'</b></div>'+
+   '<table class="ts-tb"><tr><th></th><th>Bag #</th><th>Zone #</th></tr>'+rows+'</table>'+
+  '</div></div>'+
+  '<div class="ts-sig"><span>Signed:</span><div>'+(sg?e2(n):'')+'</div></div>'+
+  '<button class="ts-sb'+(sg?' done':'')+'" id="tsSign">'+(sg?'✓ Signed '+new Date(+sg).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+' — tap to unsign':'✍️ Sign this card')+'</button>'+
+  '<div class="ts-note">Times and mileage here are the same ones on your driver card. Everything is sent to dispatch automatically.</div></div>';
+  o.querySelector('#tsX').onclick=close;
+}
+function shrink(file,max){return new Promise(function(ok){var u=URL.createObjectURL(file),im=new Image();im.onload=function(){var k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;var g=c.getContext('2d');g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c)};im.onerror=function(){ok(null)};im.src=u})}
+async function readOdo(file){miOpen=true;miNote='📷 Reading the odometer…';render();var val='';
+  try{var c=await shrink(file,1100);var data=c.toDataURL('image/jpeg',.75);
+    var r=await fetch('https://ksuvjhutalvwgikvsdeu.supabase.co/functions/v1/read-label',{method:'POST',headers:{'apikey':'sb_publishable_v60aHIwkGcr_a9UvWTb9jA_7qcffk8B','Content-Type':'application/json'},body:JSON.stringify({image:data,mode:'odometer'})});
+    if(r.ok){var j=await r.json();if(j&&j.mileage)val=String(j.mileage).replace(/\D/g,'')}}catch(e){}
+  if(!val){try{miNote='📷 Reading the odometer (backup reader)…';render();
+    if(!window.Tesseract)await new Promise(function(ok,no){var sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';sc.onload=ok;sc.onerror=no;document.head.appendChild(sc)});
+    var c2=await shrink(file,1600),w=await Tesseract.createWorker('eng');await w.setParameters({tessedit_char_whitelist:'0123456789'});var rr=await w.recognize(c2);await w.terminate();
+    var nums=(rr.data.text.match(/\d{4,7}/g)||[]).sort(function(a,b){return b.length-a.length});val=nums[0]||''}catch(e){}}
+  if(val){set(drv.n,'mileage',val);miNote='Read '+Number(val).toLocaleString()+' mi from your photo — check it matches the odometer, or tap Type it in to fix it.'}
+  else miNote='Couldn\'t read the odometer from that photo. Try again closer and straight on, or tap Type it in.';
+  render()}
+function close(){miOpen=false;miNote='';var o=document.getElementById('tsOv');if(o)o.remove();try{route()}catch(e){}}
+window.openTimesheet=function(){if(!drv)return;var o=document.getElementById('tsOv');if(!o){o=document.createElement('div');o.id='tsOv';document.body.appendChild(o);
+  o.addEventListener('change',function(e){if(e.target.id==='tsMCam'){var fl=e.target.files[0];e.target.value='';if(fl)readOdo(fl);return}if(e.target.dataset.f==='mileage')miNote='';var f=e.target.dataset.f;if(!f)return;var v=e.target.value.trim();if(f==='mileage')v=v.replace(/\D/g,'');set(drv.n,f,v)});
+  o.addEventListener('click',function(e){if(e.target===o){close();return}var fu=e.target.dataset&&e.target.dataset.fu;if(fu){set(drv.n,'fuel',fu);render();return}
+    if(e.target.closest&&e.target.closest('#tsIn')){openPick();return}
+    if(e.target.id==='tsMType'){miOpen=true;miNote='';render();var i=document.getElementById('tsMIn');if(i){i.focus();i.select()}return}
+    var lb=e.target.closest&&e.target.closest('#tsLunch');if(lb){lunchOpen=!lunchOpen;render();return}
+    if(e.target.id==='tsSign'){var sg=get(drv.n,'signed');set(drv.n,'signed',sg?'':String(Date.now()));render()}})}
+  try{sendDay(drv.n,'van',drv.v||'');sendDay(drv.n,'route',drv.r||'');sendDay(drv.n,'stage',(drv.s||'').trim())}catch(e){}
+  if(get(drv.n,'fuel')==null)set(drv.n,'fuel','no');
+  if(!get(drv.n,'in'))set(drv.n,'in',BASE);
+  render()};
+})();
+</script>
