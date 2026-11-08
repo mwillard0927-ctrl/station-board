@@ -1833,7 +1833,7 @@ function upPhotos(){if(!SB_URL||!SB_KEY||upping||!drv)return;var a=load();var c=
   fetch(SB_URL.replace(/\/$/,'')+'/rest/v1/package_photos',{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({path:path,data:c.photoData})})
   .then(function(r){upping=false;if(r.ok||r.status===409){var A=load(),C=A.filter(function(x){return x.id===c.id})[0];if(C){C.photo_path=path;delete C.photoData;save(A);sendCard(C)}upPhotos()}},function(){upping=false})}
 function flush(){upPhotos();if(!SB_URL||!SB_KEY||sending)return;var q=qGet();if(!q.length)return;sending=true;
-  fetch(SB_URL.replace(/\/$/,'')+'/rest/v1/package_reports?on_conflict=key',{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(q.map(function(x){var o={};for(var k in x)if(k!=='_t')o[k]=x[k];return o}))})
+  fetch(SB_URL.replace(/\/$/,'')+'/rest/v1/rpc/save_package_reports',{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({rows:q.map(function(x){var o={};for(var k in x)if(k!=='_t')o[k]=x[k];return o})})})
   .then(function(r){sending=false;if(r.ok){var n=qGet();qSet(n.filter(function(x){return !q.some(function(y){return y.key===x.key&&y._t===x._t})}).map(function(x){return x}))}},function(){sending=false})}
 function send(c,pi){if(!drv)return;var p=c.pk[pi],k=cur+'|'+drv.n+'|'+c.id+'-'+pi;var q=qGet().filter(function(x){return x.key!==k});
   q.push({key:k,report_date:cur,driver:drv.n,route:drv.r||null,issue:({m:'MISSING',d:'DAMAGED',s:'MISSORT'})[p.st]||null,address:p.addr||c.addr||null,aid:p.aid||null,tba:p.tba||null,pkg_type:(p.type||'').replace(/^\((\w+)\) /,'$1 ')||null,photo_path:(p.st==='d'&&c.photo_path)||null,_t:Date.now()});
@@ -2010,7 +2010,7 @@ function qG(){try{return JSON.parse(localStorage.getItem('dd|outbox')||'[]')}cat
 function qS(q){try{localStorage.setItem('dd|outbox',JSON.stringify(q))}catch(e){}}
 var busy=false;
 function flushDay(){if(busy)return;var q=qG().slice(0,1);if(!q.length)return;busy=true;
-  fetch(SBU+'/rest/v1/driver_day?on_conflict=report_date,driver',{method:'POST',headers:{'apikey':SBK,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(q.map(function(x){var o={};for(var k in x)if(k!=='_t')o[k]=x[k];return o}))})
+  fetch(SBU+'/rest/v1/rpc/save_driver_day',{method:'POST',headers:{'apikey':SBK,'Content-Type':'application/json'},body:JSON.stringify({r:(function(x){var o={};for(var k in x)if(k!=='_t')o[k]=x[k];return o})(q[0])})})
   .then(function(r){busy=false;if(r.ok){var n=qG();qS(n.filter(function(x){return !q.some(function(y){return y.report_date===x.report_date&&y.driver===x.driver&&y._t===x._t})}));flushDay()}},function(){busy=false})}
 window.sendDay=function(n,f,v){var c=COL[f];if(!c||typeof cur==='undefined')return;var q=qG(),row=q.filter(function(x){return x.report_date===cur&&x.driver===n})[0];
   if(!row){row={report_date:cur,driver:n};q.push(row)}row[c]=v||null;row._t=Date.now();qS(q);flushDay()};
