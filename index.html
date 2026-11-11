@@ -872,7 +872,7 @@ if(!window.ARCH)daySel.add(new Option('Older days…','__arch'));
 let cur=daySel.value, drv=null, field=null;
 const esc=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const key=(n,f)=>`rs|${cur}|${window.cyc0?"c0|":""}${n}|${f}`;
-const SEED={"rs|2026-11-06|Matt W|in":"09:24","rs|2026-11-06|Matt W|out":"17:42","rs|2026-11-03|Matt W|mileage":"18436","rs|2026-11-03|Matt W|in":"09:18","rs|2026-11-03|Matt W|out":"17:31","rs|2026-11-02|Matt W|mileage":"20319","rs|2026-11-02|Matt W|in":"09:23","rs|2026-11-02|Matt W|out":"17:13","rs|2026-11-11|Matt W|in":"07:03","rs|2026-11-11|Matt W|out":"17:03","rs|2026-11-11|Matt W|mileage":"22069","rs|2026-10-31|Matt W|mileage":"3096","rs|2026-10-31|Matt W|in":"09:27","rs|2026-10-31|Matt W|out":"19:02","rs|2026-10-30|Matt W|mileage":"16655","rs|2026-10-30|Matt W|in":"09:26","rs|2026-10-30|Matt W|out":"19:02","rs|2026-10-24|Matt W|mileage":"28538","rs|2026-10-24|Matt W|in":"09:26","rs|2026-10-24|Matt W|out":"19:04"};
+const SEED={"rs|2026-11-06|Matt W|in":"09:24","rs|2026-11-06|Matt W|out":"17:42","rs|2026-11-03|Matt W|mileage":"18436","rs|2026-11-03|Matt W|in":"09:18","rs|2026-11-03|Matt W|out":"17:31","rs|2026-11-02|Matt W|mileage":"20319","rs|2026-11-02|Matt W|in":"09:23","rs|2026-11-02|Matt W|out":"17:13","rs|2026-11-11|c0|Matt W|in":"07:03","rs|2026-11-11|c0|Matt W|out":"17:03","rs|2026-11-11|c0|Matt W|mileage":"22069","rs|2026-10-31|Matt W|mileage":"3096","rs|2026-10-31|Matt W|in":"09:27","rs|2026-10-31|Matt W|out":"19:02","rs|2026-10-30|Matt W|mileage":"16655","rs|2026-10-30|Matt W|in":"09:26","rs|2026-10-30|Matt W|out":"19:02","rs|2026-10-24|Matt W|mileage":"28538","rs|2026-10-24|Matt W|in":"09:26","rs|2026-10-24|Matt W|out":"19:04"};
 const get=(n,f)=>{let v=null;try{v=localStorage.getItem(key(n,f))}catch(e){v=mem[key(n,f)]}return v??SEED[key(n,f)]??null};
 const mem={};
 const set=(n,f,v)=>{mem[key(n,f)]=v;try{localStorage.setItem(key(n,f),v)}catch(e){};try{window.sendDay&&sendDay(n,f,v)}catch(e){}};
@@ -1414,16 +1414,16 @@ new MutationObserver(function(){var b=document.getElementById('dspLog');if(!b)re
 <script>
 (function(){
 function e2(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-var lunchOpen=false,miOpen=false,miNote='',BASE='09:20';
+var lunchOpen=false,miOpen=false,miNote='';function B(){return window.cyc0?'07:00':'09:20'}
 function mins(t){var p=String(t).split(':');return (+p[0])*60+(+p[1])}
 function hhmm(m){m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
-function openPick(){var n=drv.n,curv=mins(get(n,'in')||BASE)-mins(BASE),h='';
-  for(var i=10;i>=1;i--)h+='<button data-d="'+(-i)+'" class="e'+(curv===-i?' sel':'')+'">+'+i+' minute'+(i>1?'s':'')+' early <span>'+fmt12(hhmm(mins(BASE)-i))+'</span></button>';
-  h+='<button data-d="0" class="z'+(curv===0?' sel':'')+'">9:20 AM <span>on time</span></button>';
-  for(var j=1;j<=120;j++)h+='<button data-d="'+j+'" class="l'+(curv===j?' sel':'')+'">+'+j+' minute'+(j>1?'s':'')+' late <span>'+fmt12(hhmm(mins(BASE)+j))+'</span></button>';
+function openPick(){var n=drv.n,curv=mins(get(n,'in')||B())-mins(B()),h='';
+  for(var i=10;i>=1;i--)h+='<button data-d="'+(-i)+'" class="e'+(curv===-i?' sel':'')+'">+'+i+' minute'+(i>1?'s':'')+' early <span>'+fmt12(hhmm(mins(B())-i))+'</span></button>';
+  h+='<button data-d="0" class="z'+(curv===0?' sel':'')+'">'+fmt12(B())+' <span>on time</span></button>';
+  for(var j=1;j<=120;j++)h+='<button data-d="'+j+'" class="l'+(curv===j?' sel':'')+'">+'+j+' minute'+(j>1?'s':'')+' late <span>'+fmt12(hhmm(mins(B())+j))+'</span></button>';
   var p=document.createElement('div');p.id='tsPick';p.innerHTML='<div class="tp-box"><div class="tp-h">Time IN <small>scroll up = early · down = late</small></div><div class="tp-l">'+h+'</div><button class="tp-c">Cancel</button></div>';
   document.body.appendChild(p);var l=p.querySelector('.tp-l'),sel=p.querySelector('.sel')||p.querySelector('.z');requestAnimationFrame(function(){l.scrollTop=sel.offsetTop-l.offsetTop-l.clientHeight/2+sel.offsetHeight/2});
-  p.addEventListener('click',function(e){var b=e.target.closest('button');if(e.target===p||(b&&b.classList.contains('tp-c'))){p.remove();return}if(!b||b.dataset.d==null)return;set(drv.n,'in',hhmm(mins(BASE)+(+b.dataset.d)));p.remove();render()})}
+  p.addEventListener('click',function(e){var b=e.target.closest('button');if(e.target===p||(b&&b.classList.contains('tp-c'))){p.remove();return}if(!b||b.dataset.d==null)return;set(drv.n,'in',hhmm(mins(B())+(+b.dataset.d)));p.remove();render()})}
 function render(){var o=document.getElementById('tsOv');if(!o||!drv)return;var d=drv,n=d.n;
   var dt=new Date(cur+'T12:00:00'),ds=(dt.getMonth()+1)+'-'+dt.getDate()+'-'+String(dt.getFullYear()).slice(2);
   var LD=((typeof LOAD!=='undefined'?LOAD:{})[cur]||{})[String(d.r||'').replace(/\s+/,' ')],bags=LD?LD.b:[];
@@ -1437,8 +1437,8 @@ function render(){var o=document.getElementById('tsOv');if(!o||!drv)return;var d
    '<div class="ts-f"><span>Route:</span><b>'+e2(d.r||'')+'</b></div>'+
    '<div class="ts-f"><span>Stage:</span><b>'+e2(stg)+'</b></div>'+
    '<div style="height:10px"></div>'+
-   (function(){var v=get(n,'in')||BASE,df=mins(v)-mins(BASE),col=df<0?'#15803D':df>0?'#DC2626':'#111';
-     var miss=mins(v)>mins('09:30'),lk=get(n,'inLock')==='1';
+   (function(){var v=get(n,'in')||B(),df=mins(v)-mins(B()),col=df<0?'#15803D':df>0?'#DC2626':'#111';
+     var miss=mins(v)>(mins(B())+10),lk=get(n,'inLock')==='1';
      return (miss?'<div class="ts-caut">':'')+'<div class="ts-f"><span>Time IN:</span><button class="ts-in" id="tsIn" style="color:'+col+';border-bottom-color:'+col+'">'+fmt12(v)+(lk?'':' <small>▾</small>')+'</button><button class="ts-lk'+(lk?' on':'')+'" id="tsLk" title="'+(lk?'Locked — tap to unlock':'Tap to lock in this time')+'">'+(lk?'🔒':'')+'</button></div>'+
      (lk?'':'<div class="ts-lkh">Tap the red circle to lock in your time</div>')+
      (df?'<div class="ts-syn" style="color:'+col+'">('+Math.abs(df)+' minute'+(Math.abs(df)>1?'s':'')+' '+(df<0?'early':'late')+')</div>':'')+
@@ -1498,7 +1498,7 @@ function close(){miOpen=false;miNote='';var o=document.getElementById('tsOv');if
 window.openTimesheet=function(){if(!drv)return;var o=document.getElementById('tsOv');if(!o){o=document.createElement('div');o.id='tsOv';document.body.appendChild(o);
   o.addEventListener('change',function(e){if(e.target.id==='tsMCam'){var fl=e.target.files[0];e.target.value='';if(fl)readOdo(fl);return}if(e.target.dataset.f==='mileage')miNote='';var f=e.target.dataset.f;if(!f)return;var v=e.target.value.trim();if(f==='mileage')v=v.replace(/\D/g,'');set(drv.n,f,v)});
   o.addEventListener('click',function(e){if(e.target===o){close();return}var fu=e.target.dataset&&e.target.dataset.fu;if(fu){set(drv.n,'fuel',fu);render();return}
-    if(e.target.closest&&e.target.closest('#tsLk')){if(get(drv.n,'inLock')!=='1'&&!get(drv.n,'in'))set(drv.n,'in',BASE);set(drv.n,'inLock',get(drv.n,'inLock')==='1'?'':'1');render();return}
+    if(e.target.closest&&e.target.closest('#tsLk')){if(get(drv.n,'inLock')!=='1'&&!get(drv.n,'in'))set(drv.n,'in',B());set(drv.n,'inLock',get(drv.n,'inLock')==='1'?'':'1');render();return}
     if(e.target.closest&&e.target.closest('#tsIn')){if(get(drv.n,'inLock')==='1'){var k=document.getElementById('tsLk');k.classList.add('shake');setTimeout(function(){k.classList.remove('shake')},500);return}openPick();return}
     if(e.target.id==='tsMType'){miOpen=true;miNote='';render();var i=document.getElementById('tsMIn');if(i){i.focus();i.select()}return}
     var lb=e.target.closest&&e.target.closest('#tsLunch');if(lb){lunchOpen=!lunchOpen;render();return}
@@ -1507,7 +1507,7 @@ window.openTimesheet=function(){if(!drv)return;var o=document.getElementById('ts
     var ss=e.target.closest&&e.target.closest('[data-ss]');if(ss&&!get(drv.n,'signed')){var k=+ss.dataset.ss;if(k===window.tsStep){if(k<3){window.tsStep=k+1}else{window.tsStep=0;var _d=new Date();set(drv.n,'out',('0'+_d.getHours()).slice(-2)+':'+('0'+_d.getMinutes()).slice(-2));set(drv.n,'signed',String(_d.getTime()))}render()}}})}
   try{sendDay(drv.n,'van',drv.v||'');sendDay(drv.n,'route',drv.r||'');sendDay(drv.n,'stage',(drv.s||'').trim())}catch(e){}
   if(get(drv.n,'fuel')==null)set(drv.n,'fuel','no');
-  if(!get(drv.n,'in'))set(drv.n,'in',BASE);
+  if(!get(drv.n,'in'))set(drv.n,'in',B());
   render()};
 })();
 </script><style>
