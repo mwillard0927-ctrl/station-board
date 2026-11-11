@@ -30,5 +30,5 @@ jobs:
           git config user.name "station-board-bot"
           git config user.email "mwillard0927-ctrl@users.noreply.github.com"
           git add -A index.html archive.js pick data inbox
-          ls inbox/*.pdf >/dev/null 2>&1; git commit -qm "Auto: station sheets $(date -u +%F)" || exit 0
+          git commit -qm "Auto: station sheets $(date -u +%F)" || exit 0
           git pull -q --rebase && git push -q
