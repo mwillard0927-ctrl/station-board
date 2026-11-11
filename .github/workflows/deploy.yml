@@ -3,6 +3,7 @@ name: Deploy Station Driver Board to GitHub Pages
 on:
   push:
     branches: [ main ]
+    paths-ignore: [ 'inbox/**' ]
   repository_dispatch:
     types: [update_app]
 
