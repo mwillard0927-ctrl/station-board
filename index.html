@@ -1067,8 +1067,9 @@ const hdr={'apikey':SB_KEY,'Content-Type':'application/json'};
 let dev=null;try{dev=localStorage.getItem('boardDevice')}catch(e){}
 if(!dev){dev='ph-'+Math.random().toString(36).slice(2,8);try{localStorage.setItem('boardDevice',dev)}catch(e){}}
 function myName(){try{return localStorage.getItem('meName')||((document.getElementById('meBtn')||{}).dataset||{}).n||''}catch(e){return ((document.getElementById('meBtn')||{}).dataset||{}).n||''}}
-window.logTap=function(n){if(!SB_URL||!n)return;try{fetch(SB_URL+'/rest/v1/board_taps',{method:'POST',headers:Object.assign({'Prefer':'return=minimal'},hdr),body:JSON.stringify({board_day:cur,driver:n,device:dev,is_self:null}),keepalive:true}).catch(()=>{})}catch(e){}};
+window.logTap=function(n){if(!SB_URL||!n)return;try{fetch(SB_URL+'/rest/v1/board_taps',{method:'POST',headers:Object.assign({'Prefer':'return=minimal'},hdr),body:JSON.stringify({board_day:cur,driver:n,device:dev,is_self:(n===myName())?true:null}),keepalive:true}).catch(()=>{})}catch(e){}};
 const _go=window.go;window.go=function(n){logTap(n);return _go(n)};
+(function(){try{var k='boardOpenLog',d=new Date().toISOString().slice(0,10);if(localStorage.getItem(k)===d)return;var me=myName();fetch(SB_URL+'/rest/v1/board_taps',{method:'POST',headers:Object.assign({'Prefer':'return=minimal'},hdr),body:JSON.stringify({board_day:cur,driver:me||'(opened app)',device:dev,is_self:me?true:null}),keepalive:true}).then(function(r){if(r.ok)localStorage.setItem(k,d)}).catch(function(){})}catch(e){}})();
 const row=document.getElementById('c0row');if(!row)return;
 const d=document.createElement('button');d.type='button';d.id='dspBtn';d.textContent='Dispatch';row.appendChild(d);
 let pw=null;try{pw=localStorage.getItem('dspPw')}catch(e){}
@@ -1085,7 +1086,7 @@ async function openLog(days){
   if(rows.length===1&&rows[0].denied){box.remove();window.dspSignOut();alert('Wrong password');return}
   try{localStorage.setItem('dspPw',pw)}catch(e){}
   const by={},devs={};rows.forEach(x=>{by[x.driver]=(by[x.driver]||0)+1;devs[x.device]=devs[x.device]||(x.is_self?x.driver:null)||devs[x.device]});
-  const devTop={};rows.forEach(y=>{const m=devTop[y.device]=devTop[y.device]||{};m[y.driver]=(m[y.driver]||0)+1});const devName=x=>{const m=devTop[x]||{};const t=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];return 'Phone '+x.slice(3)+(t?' · mostly '+t[0]:'')};
+  const devTop={};rows.forEach(y=>{const m=devTop[y.device]=devTop[y.device]||{};m[y.driver]=(m[y.driver]||0)+1});const devName=x=>{const m=devTop[x]||{};const t=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];return 'Phone '+x.slice(3)+(devs[x]?' · '+devs[x]+' (own)':(t?' · mostly '+t[0]:''))};
   const top=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,12);
   const t=x=>new Date(x).toLocaleString([], {month:'numeric',day:'numeric',hour:'numeric',minute:'2-digit'});
   box.innerHTML=`<div class="dl-top"><button id="dlX">‹ Back</button><select id="dlD"><option value="1">Last 24 hours</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option></select></div>
