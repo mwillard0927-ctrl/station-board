@@ -13,7 +13,7 @@ for p in sys.argv[1:]:
         d=datetime.date(int(m.group(3)),MON[m.group(1)[:3].upper()],int(m.group(2)))
         rows=[]
         for l in t.split('\n')[2:]:
-            r=re.match(r'\s{0,4}(\d)?\s+(\S.*?\S)\s{2,}(\d+)\s+(\d+)\s+(STG\.\S+)?\s+(CX \d+|[A-Z]{1,3} ?\d+|R\d)\s+(.+?)(?:\s{3,}|$)',l)
+            r=re.match(r'\s{0,4}(\d)?\s+(\S.*?\S)\s{2,}(\d+)\s+(\w+)\s+(STG\.\S+)?\s+(CX \d+|[A-Z]{1,3} ?\d+|R\d)\s+(.+?)(?:\s{3,}|$)',l)
             if r: rows.append([r.group(1) or '',r.group(2),r.group(3),r.group(4),r.group(5) or '',re.sub(r'^([A-Z]+)\s*(\d+)$',r'\1 \2',r.group(6)) if not r.group(6).startswith('R') else r.group(6),r.group(7).strip()])
         lbl=d.strftime('%A, %B ')+str(d.day)+d.strftime(', %Y')+(' · '+m.group(4) if m.group(4) else '')
         out["drivers"]={"date":d.isoformat(),"label":lbl,"rows":rows}
