@@ -915,7 +915,7 @@ function renderList(){
     list.filter(d=>gk(d)===0).forEach((d,k)=>{html+=btn(d,k===0?';grid-column-start:1':'')});
   }
   document.getElementById('rows').innerHTML=html;
-  {const me=parse(DAYS[cur].rows).find(d=>d.n==='Matt W');const mb=document.getElementById('meBtn');if(mb){if(me){mb.hidden=false;mb.style.setProperty('--c','var(--g'+gk(me)+')');mb.dataset.n=me.n;mb.innerHTML=`★ Me · Matt W<small class="sp">${esc(me.r||'')} · ${esc(((me.s||'').trim()||'—').replace(/^STG\.?/i,''))} · Van ${esc(me.v||'')}</small>`}else mb.hidden=true}}
+  {const _ln=(()=>{try{return localStorage.getItem('lockName')||''}catch(e){return ''}})();const me=_ln&&parse(DAYS[cur].rows).find(d=>d.n===_ln);const mb=document.getElementById('meBtn');if(mb){if(me){mb.hidden=false;mb.style.setProperty('--c','var(--g'+gk(me)+')');mb.dataset.n=me.n;mb.innerHTML=`★ ${esc(me.n)}<small class="sp">${esc(me.r||'')} · ${esc(((me.s||'').trim()||'—').replace(/^STG\.?/i,''))} · Van ${esc(me.v||'')}</small>`}else mb.hidden=true}}
   document.querySelectorAll('.lg button').forEach(b=>b.classList.toggle('on',focusG!=null&&+b.dataset.fg===focusG));
 }
 
@@ -1119,6 +1119,322 @@ new MutationObserver(()=>{if(document.body.classList.contains('hdrOpen'))lbl()})
 lbl();
 })();
 </script>
+<style>
+#detail{position:relative}#meBtn:not([hidden]){display:flex!important;min-height:104px;font-size:26px;font-weight:800;justify-content:center;border-radius:14px}#meBtn small{font-size:15px;font-weight:600}
+#lkBar{position:absolute;top:0;right:16px;display:flex;gap:6px;z-index:5}#lkBar button{position:relative;display:flex;align-items:center;gap:4px;border:2px solid var(--acc);background:#fff;color:#b45309;border-radius:10px;padding:4px 9px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;white-space:nowrap}
+#lockBtn.on,#itinBtn.ok{background:#e6f4ea;border-color:#2e7d32;color:#2e7d32}#itinBtn{border-color:#232f3e;background:#232f3e;color:#fff}#itinBtn.warn{background:#FEF3C7;border-color:#F59E0B;color:#92400E}
+#lockBtn .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(46,125,50,.25);border-radius:8px}#lockBtn.holding .fill{width:100%;transition:width 1.5s linear}
+.lk-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}.lk-bx{background:#fff;border-radius:14px;padding:20px;max-width:340px;width:100%;text-align:center;font-size:16px;color:#111}.lk-bx b{display:block;font-size:24px;margin:6px 0 4px}.lk-bx small{display:block;color:#666;margin-bottom:14px}.lk-bx .r{display:grid;grid-template-columns:1fr 1fr;gap:10px}.lk-bx button{padding:12px;border-radius:10px;font-size:16px;font-weight:700;border:1px solid #bbb;background:#fff;color:#111}.lk-bx button.y{background:#232f3e;color:#fff;border-color:#232f3e}.lk-bx.warn{border:3px solid #f0a020}
+body:not(.locked) #ppBox{display:none}
+#itOv{position:fixed;inset:0;z-index:70;background:var(--bg);color:var(--ink);overflow:auto;padding:12px 14px 48px}
+.it-top{display:flex;align-items:center;gap:10px;font-size:19px}.it-top button{border:0;background:var(--line);color:var(--ink);font:inherit;font-size:14px;font-weight:800;border-radius:10px;padding:8px 12px;cursor:pointer}.it-sub{color:var(--mute);font-size:13px;margin:4px 0 10px}
+.it-how{margin:0 0 12px;padding-left:20px;font-size:14px;line-height:1.45}.it-how li{margin-bottom:4px}
+.it-up{display:block;text-align:center;background:var(--acc);color:#111;font-weight:800;border-radius:12px;padding:13px;font-size:16px;cursor:pointer}.it-st{font-size:13px;color:var(--mute);text-align:center;margin:8px 0}.it-st:empty{display:none}
+.it-msg{border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.4;margin:10px 0}.it-msg.ok{background:#DCFCE7;color:#14532D;border:1px solid #16A34A}.it-msg.bad{background:#FEF3C7;color:#78350F;border:1px solid #F59E0B}.it-msg ul{margin:6px 0;padding-left:18px}
+#itOv h3{margin:16px 0 6px;font-size:15px;display:flex;justify-content:space-between}#itOv h3 small{color:var(--mute);font-weight:600}
+.it-r{display:grid;grid-template-columns:14px 1fr auto 62px;gap:8px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 8px;margin-bottom:5px;font-size:14px}.it-r i{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.3)}.it-r small,.it-z small{display:block;color:var(--mute);font-size:11.5px}.it-r em{font-style:normal;font-size:12px;color:var(--mute);text-align:right}
+.it-s{display:flex;align-items:center;gap:3px}.it-s input{width:46px;font:inherit;font-weight:700;text-align:center;padding:6px 2px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.it-r.bad,.it-r.miss,.it-z.bad{border:2px solid #F59E0B;background:#FFFBEB;color:#78350F}.it-r.bad em,.it-r.miss em{color:#B45309;font-weight:800}
+.it-z{display:grid;grid-template-columns:86px 1fr;gap:8px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 8px;margin-bottom:5px;font-size:14px}.it-a{font:700 13px ui-monospace,monospace;color:var(--ink)}
+.it-clr{display:block;margin:18px auto 0;background:none;border:0;color:var(--mute);text-decoration:underline;font:inherit;font-size:13px;cursor:pointer}
+.tsr{font-size:11.5px;font-weight:800;margin-top:1px}
+.rz{margin-top:12px;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px;text-align:left}.rz-h{font-size:15px;font-weight:800;margin-bottom:6px}.rz-n{font-size:13px;color:var(--mute);line-height:1.4;margin-bottom:8px}.rz-n.bad{color:#92400E}
+.rz-up{display:block;width:100%;border:0;background:#232f3e;color:#fff;font:inherit;font-weight:800;font-size:15px;border-radius:12px;padding:12px;cursor:pointer}
+.rz-b{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.rz-b button{border:2px solid #2563EB;background:var(--card);color:#2563EB;font:inherit;font-weight:800;font-size:15px;border-radius:12px;padding:11px 2px;cursor:pointer}.rz-b button.on{background:#2563EB;color:#fff}
+.rz-o{border:1px solid var(--line);border-radius:12px;padding:9px;margin-top:8px;background:var(--bg)}.rz-t{display:flex;align-items:baseline;gap:8px}.rz-t b{font-size:17px}.rz-t span{font-size:13px;color:var(--mute);flex:1}.rz-t em{font-style:normal;font-size:12px;font-weight:800;background:var(--line);border-radius:6px;padding:1px 6px}
+.rz-g{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 3px}.rz-g span{border-radius:7px;padding:3px 8px;font-size:13.5px;font-weight:800;border:1px solid rgba(0,0,0,.15)}.rz-s{font-size:12px;color:var(--mute)}
+.rz-l{font-size:12px;font-weight:800;margin:8px 0 4px}.rz-l.ck{color:#92400E;font-weight:700}.rz-c{display:flex;flex-wrap:wrap;gap:4px}
+.of-c{background:#6b7280;color:#fff;border-radius:6px;padding:2px 7px;font-size:13px;font-weight:800;line-height:1.25}.of-c small{display:block;font-size:10px;font-weight:600;opacity:.9}.rz-c.ck .of-c{background:none;color:var(--ink);border:1.5px dashed #9ca3af}
+.pp-k{grid-template-columns:36px 52px 1fr 78px!important}.pp-k input[data-f=tba]{font-size:13px;padding:6px 5px}.pp-of{border:2px solid var(--line);background:var(--card);color:var(--mute);border-radius:8px;font:inherit;font-size:12px;font-weight:800;padding:7px 0;cursor:pointer}.pp-of.on{background:#6b7280;border-color:#6b7280;color:#fff}
+.pp-okn{display:block;width:100%;margin-top:6px;border:0;background:none;color:var(--mute);font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;text-align:left;padding:2px 0}
+.tp-w{background:#FEF3C7;color:#78350F;font:600 12.5px Arial;padding:8px 14px;border-bottom:1px solid #e5e7eb}
+.rz-of{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;background:#6b7280;color:#fff;font:inherit;font-weight:800;font-size:15px;border-radius:12px;padding:12px;margin-bottom:12px;cursor:pointer}.rz-of span{font-size:12.5px;font-weight:600}
+#ofOv{position:fixed;inset:0;z-index:70;background:var(--bg);color:var(--ink);overflow:auto;padding:12px 10px 48px}.of-n{margin-left:auto;font-size:14px;font-weight:600;color:var(--mute)}.of-n b{color:var(--ink);font-size:17px}
+.of-g{position:relative;border:3px solid var(--ink);border-radius:8px;padding:4px 4px 4px 0;background:var(--card)}
+.of-wm{position:absolute;inset:22px 0 0 22px;display:flex;flex-direction:column;justify-content:space-around;align-items:center;pointer-events:none}.of-wm span{font-size:84px;font-weight:900;letter-spacing:2px;color:var(--ink);opacity:.22;line-height:1}
+.of-hd,.of-r{position:relative;display:grid;grid-template-columns:22px repeat(6,minmax(0,1fr));gap:4px}.of-hd{height:18px;margin-bottom:2px}.of-hd b,.of-r>b{font-size:13px;color:var(--mute);text-align:center;align-self:center}.of-r{margin-bottom:4px}.of-r:last-child{margin-bottom:0}
+.of-r>i,.of-r>button{min-height:60px}.of-r>button{border:1.5px solid #9ca3af;border-top:5px solid transparent;border-radius:8px;background:rgba(255,255,255,.78);color:#111;font:inherit;padding:1px 0 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+.of-r>button b{font-size:17px;font-weight:900}.of-r>button small{font-size:9.5px;font-weight:700;color:#4b5563;min-height:10px}
+.of-r>button.on{background:#16A34A;border-color:#15803D;color:#fff}.of-r>button.on small{color:#DCFCE7}.of-r>button.on b::after{content:" ✓";font-size:12px}
+.of-k{font-size:12px;color:var(--mute);line-height:1.4;margin-top:10px}
+.rz-mx{background:#FEF3C7;color:#78350F;border:1px solid #F59E0B;border-radius:8px;padding:6px 8px;font-size:12.5px;font-weight:600;margin-top:6px}
+#lkHint{font-size:13px;color:var(--mute);background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:10px 12px;line-height:1.4}
+.pp-all{margin-top:8px}.pp-all button{font-size:12.5px!important}
+.it-add{margin-left:6px;border:1.5px solid #F59E0B;background:#fff;color:#92400E;border-radius:8px;font:inherit;font-size:12px;font-weight:800;padding:3px 7px;cursor:pointer}
+</style>
+<script>
+/* Itinerary reading + rescue options (pure logic; embedded into index.html) */
+var ItinCore=(function(){
+const CLS=['0ODQ','1IL','2Z','5S','6G','8B','7T'];const CM={};CLS.forEach((s,i)=>s.split('').forEach(c=>CM[c]=i));
+const canon=s=>String(s||'').toUpperCase().replace(/[|!\]\[]/g,'1').replace(/[^A-Z0-9]/g,'');
+function wdist(a,b){const n=a.length,m=b.length;let p=[];for(let j=0;j<=m;j++)p[j]=j;
+  for(let i=1;i<=n;i++){const q=[i];for(let j=1;j<=m;j++){const x=a[i-1],y=b[j-1];const s=x===y?0:(CM[x]!=null&&CM[x]===CM[y])?.3:((x==='V'&&y==='Y')||(x==='Y'&&y==='V'))?.6:1;q[j]=Math.min(p[j]+1,q[j-1]+1,p[j-1]+s)}p=q}return p[m]}
+function best(raw,cands){const c=canon(raw);let bi=-1,bd=99,d2=99;const seen={};cands.forEach((z,i)=>{const k=canon(z);if(seen[k]!=null)return;seen[k]=i;const d=wdist(c,k);if(d<bd){d2=bd;bd=d;bi=i}else if(d<d2)d2=d});return {i:bi,d:bd,d2}}
+const reH=/^\W{0,3}St\w{2,4}\s*[:.]?\s*(\d{1,3})(?:\s*[-–—~_.]+\s*(\d{1,3}))?\s*$/i;
+const reT=/^\s*(\S(?:.{2,12}?\S)?)\s+St\w{2,4}\s*[:.]?\s*(\d{1,3})(?:\s*[-–—~_.]+\s*(\d{1,3}))?\s*$/i;
+const reItem=/[\(\{\[]\s*(?:XXL|XL|XS|S|M|L)\s*[\)\}\]]|\bbox\b|unknown|custom|envelope|\bbag\b/i;
+const reColor=/green|navy|yellow|orange|black|\bred\b|blue|white|purple|pink|gr[ae]y/i;
+const DG={O:'0',Q:'0',D:'0',I:'1',L:'1',Z:'2',S:'5',G:'6',B:'8',T:'7'};
+function normAid(tok){let s=canon(tok);if(s.length===4&&s[0]==='U')return s+'?';if(s.length>3)s=s.slice(-3);if(s.length<3)return s?s+'?':'';
+  const f=s[0]==='U'?'U':(DG[s[0]]||s[0]);const r=f+s.slice(1).split('').map(c=>DG[c]||c).join('');return /^(U\d\d|\d{3})$/.test(r)?r:s+'?'}
+function parseItem(line){const m=line.match(/[\(\{\[]?\s*\b(XXL|XL|XS|S|M|L)\s*[\)\}\]]/i);const toks=line.trim().split(/\s+/);const last=toks[toks.length-1]||'';
+  const hasAid=/\d/.test(last)||/^\W*u\w\w$/i.test(last);
+  return {sz:m?m[1].toUpperCase():(/unknown/i.test(line)?'?':''),cu:/cust/i.test(line),ty:/unknown/i.test(line)?'Unknown':/envel/i.test(line)?'Envelope':/\bbag\b/i.test(line)?'Bag':'Box',aid:hasAid?normAid(last):''}}
+function zoneLike(s){const t=s.trim();if(t.length>12||/\s\S+\s/.test(t))return false;const c=canon(t);return c.length>=4&&c.length<=7&&/\d/.test(c)&&!reItem.test(t)&&!reH.test(t)}
+/* lines -> tokens for one screenshot. lines = strings or {t,aid}; L = pick sheet {b:[[zone,name,pkgs]],o:[[zone,count]]} */
+function parse(lines,L){
+  const LN=lines.map(x=>typeof x==='string'?{t:x}:x).map(x=>({t:String(x.t||'').replace(/\s+$/,''),aid:x.aid||''})).filter(x=>x.t.trim());
+  const tz=L.b.map(b=>b[0]),tn=L.b.map(b=>(b[1].match(/\d+/)||[''])[0]),oz=L.o.map(o=>o[0]);const tk=[];
+  const nameLike=s=>!!s&&(reColor.test(s)||(s.match(/\d{3,4}/g)||[]).some(d=>tn.includes(d)));
+  const isItem=i=>{const x=LN[i];if(!x)return false;const l=x.t;if(reH.test(l)||reT.test(l)||/overflow\s*pack/i.test(l))return false;return reItem.test(l)||!!x.aid||(/(?:^|\s)\W{0,2}(?:u\w\w|\d{3})\s*$/i.test(l)&&!nameLike(l))};
+  const PI=i=>{const r=parseItem(LN[i].t),a=LN[i].aid;if(a&&(!/\?$/.test(a)||!r.aid||/\?$/.test(r.aid)))r.aid=a;return r};
+  for(let i=0;i<LN.length;i++){const s=LN[i].t,nx=(LN[i+1]||{}).t||'';let m;
+    if(/overflow\s*pack/i.test(s))continue;
+    if((m=s.match(reH))){const a=+m[1],b=m[2]==null?a:+m[2];
+      if(nameLike(nx)&&!reItem.test(nx)){const pv=tk.length&&tk[tk.length-1].k==='Z'?tk.pop().zraw:'';tk.push({k:'T',zraw:pv,a,b,nm:nx});i++}
+      else tk.push({k:'H',a,b});continue}
+    if((m=s.match(reT))&&!reItem.test(s)){tk.push({k:'T',zraw:m[1],a:+m[2],b:m[3]==null?+m[2]:+m[3],nm:nameLike(nx)?nx:''});if(nameLike(nx))i++;continue}
+    if(zoneLike(s)){if(isItem(i+1)){tk.push(Object.assign({k:'I',zraw:s.trim()},PI(i+1)));i++}else tk.push({k:'Z',zraw:s.trim()});continue}
+    if(isItem(i)&&(reItem.test(s)||LN[i].aid)&&!nameLike(s)){const it=PI(i);if(it.aid)tk.push(Object.assign({k:tk.length?'I':'P',zraw:''},it))}
+  }
+  // drop zone-only tokens unless last (possible row cut by the screen edge)
+  const out=tk.filter((t,i)=>t.k!=='Z'||i===tk.length-1);
+  // match tote rows to pick-sheet totes
+  const T=out.filter(t=>t.k==='T');const used={};
+  T.forEach(t=>{t.ti=-1;const num=(String(t.nm).match(/\d{3,4}/g)||[]).find(d=>tn.filter(x=>x===d).length===1);const r=best(t.zraw,tz);
+    if(num!=null){const j=tn.indexOf(num);if(wdist(canon(t.zraw),canon(tz[j]))<=2.5||!t.zraw){t.ti=j}}
+    if(t.ti<0&&r.d<=1&&r.d2-r.d>=.25)t.ti=r.i;
+    if(t.ti>=0){if(used[t.ti])t.ti=-1;else used[t.ti]=1}});
+  for(let i=0;i<T.length;i++){if(T[i].ti>=0)continue;let j=i;while(j<T.length&&T[j].ti<0)j++;
+    const p=i?T[i-1].ti:-1,q=j<T.length?T[j].ti:L.b.length;const free=[];for(let x=p+1;x<q;x++)if(!used[x])free.push(x);
+    if(free.length===j-i&&q>p)for(let x=i;x<j;x++){T[x].ti=free[x-i];used[free[x-i]]=1}
+    else for(let x=i;x<j;x++){let bi=-1,bd=2.01;free.forEach(f=>{if(used[f])return;const d=wdist(canon(T[x].zraw),canon(tz[f]));if(d<bd){bd=d;bi=f}});if(bi>=0){T[x].ti=bi;used[bi]=1}}
+    i=j}
+  out.forEach(t=>{if(t.k==='I'||t.k==='P'||t.k==='Z'){const r=t.zraw?best(t.zraw,oz):{i:-1,d:9,d2:9};t.z=(r.i>=0&&r.d<=1&&r.d2-r.d>=.25)?oz[r.i]:null}});
+  return out.filter(t=>t.k!=='T'||t.ti>=0);
+}
+function eq(a,b){if(a.k==='T'||b.k==='T')return a.k===b.k&&a.ti===b.ti;if(a.k==='H'||b.k==='H')return a.k===b.k&&a.a===b.a&&a.b===b.b;
+  const zs=(a.z&&b.z)?a.z===b.z:(!a.zraw||!b.zraw||canon(a.zraw)===canon(b.zraw)||!a.z||!b.z);
+  if(a.k==='Z'||b.k==='Z')return a.k!==b.k&&(a.k==='I'||b.k==='I')&&!!a.zraw&&!!b.zraw&&(a.z?a.z===b.z:canon(a.zraw)===canon(b.zraw));
+  return !!a.aid&&a.aid===b.aid&&zs}
+const rank=t=>t.k==='I'?(t.z?3:2):t.k==='P'?1:t.k==='Z'?0:(t.k==='T'&&t.a<=t.b?3:2);
+function key(seq){const T=seq.filter(t=>t.k==='T');if(T.length)return [0,Math.min.apply(0,T.map(t=>t.ti))];const h=seq.findIndex(t=>t.k==='H');return h<0?null:[1,seq[h].a-(h>0?.5:0)]}
+/* seqs = token lists in file order -> one merged list */
+function stitch(seqs){
+  const S=seqs.filter(s=>s&&s.length).map(s=>({s,key:key(s)}));
+  for(let i=0;i<S.length;i++)if(!S[i].key&&i&&S[i-1].key)S[i].key=[S[i-1].key[0]||1,S[i-1].key[1]+.001];
+  for(let i=S.length-1;i>=0;i--)if(!S[i].key)S[i].key=i<S.length-1?[1,S[i+1].key[1]-.001]:[1,0];
+  S.forEach((x,i)=>x.i=i);S.sort((x,y)=>x.key[0]-y.key[0]||x.key[1]-y.key[1]||x.i-y.i);
+  const weak=t=>t.k==='P'||t.k==='Z'||(t.k==='I'&&(!t.z||!t.aid||/\?$/.test(t.aid)));
+  const soft=(a,b)=>a.k==='I'&&b.k==='I'&&((a.z&&a.z===b.z)||(!!a.aid&&a.aid===b.aid));
+  let M=[];S.forEach(({s})=>{s=s.map(t=>Object.assign({},t));if(!M.length){M=s;return}
+    let bst=null;for(let dm=0;dm<=2;dm++){if(dm&&(M.length<=dm||!weak(M[M.length-dm])))break;const Mm=M.length-dm;
+      for(let q=0;q<=2;q++){if(q&&(s.length<=q||!weak(s[q-1])))break;
+        for(let p=0;p<Mm;p++){const n=Math.min(s.length-q,Mm-p);if(n<1)continue;let st=0,sf=0,ok=true;
+          for(let i=0;i<n&&ok;i++){if(eq(M[p+i],s[q+i]))st++;else if(soft(M[p+i],s[q+i]))sf++;else ok=false}
+          if(ok&&st>=(n<=2?n:Math.max(1,n-Math.max(1,Math.floor(n/3))))){if(!bst||n>bst.n)bst={p,q,n,dm};break}}}}
+    if(bst){M.length-=bst.dm;for(let i=0;i<bst.n;i++){const a=M[bst.p+i],b=s[bst.q+i];if(rank(b)>rank(a))M[bst.p+i]=Object.assign(b,{z:b.z||a.z,aid:b.aid||a.aid})}M=M.concat(s.slice(bst.q+bst.n));return}
+    const last=M[M.length-1];
+    if(last.k==='Z'&&s[0].k==='P'){M[M.length-1]=Object.assign(s[0],{k:'I',zraw:last.zraw,z:last.z});M=M.concat(s.slice(1));return}
+    if(last.k==='Z')M.pop();M=M.concat(s)});
+  return M.filter(t=>t.k!=='Z').map(t=>t.k==='P'?Object.assign(t,{k:'I'}):t);
+}
+/* merged tokens -> itinerary + completeness check against the pick sheet */
+function build(M,L){
+  const t={};M.forEach(x=>{if(x.k==='T'&&(t[x.ti]==null||(t[x.ti][0]>t[x.ti][1]&&x.a<=x.b)))t[x.ti]=[x.a,x.b]});
+  let g=null;const of=[];M.forEach(x=>{if(x.k==='H')g=[x.a,x.b];else if(x.k==='I')of.push({z:x.z||null,zraw:x.zraw||'',aid:x.aid||'',sz:x.sz||'',cu:!!x.cu,ty:x.ty||'Box',g:g?g.slice():null})});
+  return check({t,of},L)}
+function check(it,L){(it.man||[]).forEach(m=>{if(!it.of.some(o=>o.man&&o.aid===m.aid&&o.z===m.z))it.of.push(Object.assign({man:true,ty:'Box',sz:'',cu:false,g:null},m))});
+  const need={};L.o.forEach(o=>need[o[0]]=(need[o[0]]||0)+o[1]);const got=()=>{const c={};it.of.forEach(o=>{if(o.z)c[o.z]=(c[o.z]||0)+1});return c};
+  let c=got();it.of.forEach(o=>{if(o.z)return;const def=Object.keys(need).filter(z=>(c[z]||0)<need[z]);if(!def.length)return;let bz=null,bd=o.zraw?2.6:(def.length===1?9:-1);
+    def.forEach(z=>{const d=o.zraw?wdist(canon(o.zraw),canon(z)):0;if(d<bd){bd=d;bz=z}});if(bz){o.z=bz;c[bz]=(c[bz]||0)+1}});
+  c=got();const miss=[],bad=[];L.b.forEach((b,i)=>{const r=it.t[i];if(!r)miss.push(i);else if(!(r[0]>=1&&r[0]<=r[1]))bad.push(i)});
+  const short=Object.keys(need).filter(z=>(c[z]||0)<need[z]).map(z=>({z,need:need[z],got:c[z]||0}));
+  it.st={miss,bad:bad.sort((a,b)=>a-b),short,ofNeed:Object.values(need).reduce((a,x)=>a+x,0),ofGot:Object.keys(need).reduce((a,z)=>a+Math.min(c[z]||0,need[z]),0),unk:it.of.filter(o=>!o.z).length};
+  it.st.ok=!miss.length&&!bad.length&&!short.length;return it}
+/* stop bounds for each overflow box: it sits somewhere in its "Stops a-b" group, list is first-to-last stop */
+function bounds(it,L){const mx=Math.max.apply(0,Object.values(it.t).map(r=>r[1]).concat(it.of.map(o=>o.g?o.g[1]:0)));
+  const B=it.of.map(o=>o.g?[o.g[0],o.g[1]]:[1,mx]);let s=0;
+  for(let i=0;i<=it.of.length;i++){const same=i<it.of.length&&i>s&&it.of[i].g&&it.of[s].g&&it.of[i].g[0]===it.of[s].g[0]&&it.of[i].g[1]===it.of[s].g[1];if(i>s&&!same){
+      if(it.of[s].g){B[s][1]=B[s][0];B[i-1][0]=B[i-1][1]=it.of[i-1].g[1];if(i-1===s)B[s]=[it.of[s].g[0],it.of[s].g[1]]}
+      for(let k=s;k<i;k++){const ti=L.b.findIndex(b=>b[0]===it.of[k].z);const r=ti>=0&&it.t[ti];if(r&&k!==s&&k!==i-1){const lo=Math.max(B[k][0],r[0]),hi=Math.min(B[k][1],r[1]);if(lo<=hi)B[k]=[lo,hi]}}
+      for(let k=s+1;k<i;k++)B[k][0]=Math.max(B[k][0],B[k-1][0]);for(let k=i-2;k>=s;k--)B[k][1]=Math.min(B[k][1],B[k+1][1]);s=i}}
+  return B}
+/* rescue options: runs of bags next to each other in loadout order that are not finished */
+function options(it,L,off,N){const n=L.b.length,B=bounds(it,L),all=[];const ov=(i,j)=>it.t[i]&&it.t[j]&&it.t[i][0]<=it.t[j][1]&&it.t[j][0]<=it.t[i][1];
+  for(let i=0;i<n;i++){if(off.includes(i)||!it.t[i])continue;
+    for(let j=i;j<n&&!off.includes(j)&&it.t[j];j++){const rs=[];for(let k=i;k<=j;k++)rs.push(it.t[k].slice());rs.sort((x,y)=>x[0]-y[0]);
+      const U=[];rs.forEach(r=>{const l=U[U.length-1];if(l&&r[0]<=l[1]+4)l[1]=Math.max(l[1],r[1]);else U.push(r)});const cnt=U.reduce((a,r)=>a+r[1]-r[0]+1,0),lo=U[0][0],hi=U[U.length-1][1];
+      const mix=[];for(let k=i;k<=j;k++)for(let m=0;m<n;m++)if((m<i||m>j)&&!off.includes(m)&&ov(k,m)&&!mix.some(x=>x[0]===k&&x[1]===m))mix.push([k,m]);
+      const sure=[],maybe=[];it.of.forEach((o,k)=>{const b=B[k];if(!U.some(r=>b[0]<=r[1]&&r[0]<=b[1]))return;(U.some(r=>b[0]>=r[0]&&b[1]<=r[1])?sure:maybe).push(o)});
+      all.push({i,j,cnt,lo,hi,U,mix,sure,maybe,diff:cnt-N})}}
+  const tol=Math.max(3,Math.round(N*.2));all.sort((x,y)=>(x.mix.length?1:0)-(y.mix.length?1:0)||Math.abs(x.diff)-Math.abs(y.diff)||y.i-x.i);
+  const fit=all.filter(o=>Math.abs(o.diff)<=tol);return {fit:fit.length>0,list:(fit.length?fit:all).slice(0,fit.length?5:3)}}
+/* likely stop + bag for each overflow box. zt = {zone: bag index} from the pick sheet (optional hint) */
+function guess(it,L,zt){const B=bounds(it,L),out=[];let s=0;
+  for(let i=1;i<=it.of.length;i++){const same=i<it.of.length&&it.of[i].g&&it.of[s].g&&it.of[i].g[0]===it.of[s].g[0]&&it.of[i].g[1]===it.of[s].g[1];if(same)continue;
+    for(let k=s;k<i;k++){const b=B[k],g=it.of[k].g||b;let est=i-s>1?Math.round(g[0]+(g[1]-g[0])*(k-s)/(i-s-1)):b[0];est=Math.max(b[0],Math.min(b[1],est));
+      const cand=L.b.map((x,j)=>j).filter(j=>it.t[j]&&it.t[j][0]<=b[1]&&b[0]<=it.t[j][1]);let ti=-1;const h=zt?zt[it.of[k].z]:null;
+      if(cand.length===1)ti=cand[0];else if(h!=null&&cand.includes(h))ti=h;else{let bd=1e9;cand.forEach(j=>{const r=it.t[j],d=est<r[0]?r[0]-est:est>r[1]?est-r[1]:0;if(d<bd){bd=d;ti=j}})}
+      out.push({lo:b[0],hi:b[1],est,ti})}s=i}
+  return out}
+return {parse,stitch,build,check,bounds,options,guess,canon,wdist};
+})();
+if(typeof module!=='undefined')module.exports=ItinCore;
+</script>
+<script>
+(function(){
+/* ================= lock this phone to one driver ================= */
+const K='lockName',$=id=>document.getElementById(id);
+const getL=()=>{try{return localStorage.getItem(K)||''}catch(e){return ''}};
+const setL=v=>{try{if(v){localStorage.setItem(K,v);localStorage.setItem('meName',v)}else{localStorage.removeItem(K);localStorage.removeItem('meName')}}catch(e){}};
+const E=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function ask(html,yes,warn){return new Promise(res=>{const o=document.createElement('div');o.className='lk-ov';o.innerHTML='<div class="lk-bx'+(warn?' warn':'')+'">'+html+'<div class="r"><button type="button" class="n">Cancel</button><button type="button" class="y">'+yes+'</button></div></div>';o.querySelector('.n').onclick=()=>{o.remove();res(false)};o.querySelector('.y').onclick=()=>{o.remove();res(true)};document.body.appendChild(o)})}
+const bar=document.createElement('div');bar.id='lkBar';bar.innerHTML='<button type="button" id="itinBtn" hidden></button><button type="button" id="lockBtn"></button>';$('detail').appendChild(bar);
+const btn=$('lockBtn'),ib=$('itinBtn');
+const hint=document.createElement('div');hint.id='lkHint';hint.hidden=true;hint.textContent='🔓 If this is you, tap Lock (top right). It puts your name at the top of the app and turns on package reports, your itinerary and rescue options on this phone.';$('ppBox').after(hint);
+const mine=()=>!!drv&&getL()===drv.n;
+function paint(){const L=getL(),here=drv&&drv.n;document.body.classList.toggle('locked',!!L&&L===here);
+  if(L&&L===here){btn.className='on';btn.innerHTML='<span class="fill"></span><span style="position:relative">🔒 Locked</span>';btn.hidden=false}
+  else if(L){btn.hidden=true}
+  else{btn.className='';btn.innerHTML='🔓 Lock';btn.hidden=false}
+  hint.hidden=!!L;
+  ib.hidden=!mine();if(mine()){const it=itGet();ib.className=it?(it.st&&it.st.ok?'ok':'warn'):'';ib.textContent='📋 Itinerary'+(it?(it.st&&it.st.ok?' ✓':' ⚠'):'')}}
+btn.addEventListener('click',async()=>{if(getL()||!drv)return;const n=drv.n;
+  if(!await ask('Lock this phone to<b>'+E(n)+'?</b><small>Only do this if this is you.</small>','Yes'))return;
+  if(!await ask('⚠️ Are you sure this is you?<b>'+E(n)+'</b><small>Your name will always be at the top of the app on this phone.</small>','Lock it',true))return;
+  setL(n);try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}route()});
+let ht=null;const stop=()=>{btn.classList.remove('holding');if(ht){clearTimeout(ht);ht=null}};
+btn.addEventListener('pointerdown',e=>{if(!getL())return;e.preventDefault();btn.classList.add('holding');ht=setTimeout(async()=>{ht=null;btn.classList.remove('holding');try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}
+  if(await ask('Unlock this phone?<b>'+E(getL())+'</b><small>Anyone could then pick a different name.</small>','Unlock')){setL('');route()}},1500)});
+['pointerup','pointerleave','pointercancel'].forEach(t=>btn.addEventListener(t,stop));
+btn.addEventListener('contextmenu',e=>e.preventDefault());
+
+/* ================= itinerary screenshots -> stops per bag ================= */
+const IK=()=>'itin|'+cur+'|'+(drv&&drv.n);
+function itGet(){try{return JSON.parse(localStorage.getItem(IK())||'null')}catch(e){return null}}
+function itSet(v){try{v?localStorage.setItem(IK(),JSON.stringify(v)):localStorage.removeItem(IK())}catch(e){}}
+function LD(){if(!drv)return null;const D=LOAD[cur]||{};return D[drv.r]||D[String(drv.r||'').replace(/\s+/,' ')]||null}
+function rebuild(it,L){const b=ItinCore.build(ItinCore.stitch(it.src||[]),L);Object.keys(it.ed||{}).forEach(i=>{b.t[i]=it.ed[i]});b.man=it.man||[];ItinCore.check(b,L);Object.keys(it.fix||{}).forEach(k=>{if(b.of[k])b.of[k].aid=it.fix[k]});it.t=b.t;it.of=b.of;it.st=b.st;return it}
+let tj=null,busy='';
+function loadT(){if(window.Tesseract)return Promise.resolve(window.Tesseract);return tj||(tj=new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';s.onload=()=>ok(window.Tesseract);s.onerror=()=>{tj=null;no()};document.head.appendChild(s)}))}
+function loadImg(file){return new Promise((ok,no)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>ok(im);im.onerror=no;im.src=u})}
+function strip(im,x0,y0,w,h,sc){const c=document.createElement('canvas');c.width=Math.round(w*sc);c.height=Math.round(h*sc);const g=c.getContext('2d');g.imageSmoothingQuality='high';g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,x0,y0,w,h,0,0,c.width,c.height);
+  try{const d=g.getImageData(0,0,c.width,c.height),p=d.data;let s=0,n=0;for(let i=0;i<p.length;i+=64){s+=p[i]+p[i+1]+p[i+2];n+=3}
+    if(s/n<110){for(let i=0;i<p.length;i+=4){p[i]=255-p[i];p[i+1]=255-p[i+1];p[i+2]=255-p[i+2]}g.putImageData(d,0,0)}}catch(e){}
+  return c}
+/* white-out icons: connected dark shapes much taller than the letters (bag dots, box and warning icons, bars) */
+function deIcon(c){try{const g=c.getContext('2d'),W=c.width,H=c.height,d=g.getImageData(0,0,W,H),p=d.data,n=W*H,bin=new Uint8Array(n),st=new Int32Array(n),bx=[];
+    for(let i=0,j=0;i<n;i++,j+=4)bin[i]=(p[j]*3+p[j+1]*6+p[j+2])<1400?1:0;
+    for(let i=0;i<n;i++){if(bin[i]!==1)continue;let x0=W,x1=0,y0=H,y1=0,sp=0;st[sp++]=i;bin[i]=2;
+      while(sp){const q=st[--sp],x=q%W,y=(q-x)/W;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;
+        if(x>0&&bin[q-1]===1){bin[q-1]=2;st[sp++]=q-1}if(x<W-1&&bin[q+1]===1){bin[q+1]=2;st[sp++]=q+1}if(y>0&&bin[q-W]===1){bin[q-W]=2;st[sp++]=q-W}if(y<H-1&&bin[q+W]===1){bin[q+W]=2;st[sp++]=q+W}}
+      bx.push([x0,y0,x1,y1])}
+    const hs=bx.map(b=>b[3]-b[1]+1).filter(h=>h>=10&&h<=140).sort((a,b)=>a-b);if(hs.length<12)return c;const cap=hs[Math.floor(hs.length*.75)];
+    g.fillStyle='#fff';bx.forEach(b=>{const h=b[3]-b[1]+1,w=b[2]-b[0]+1;if(h>cap*1.45&&w>cap*.9)g.fillRect(b[0]-2,b[1]-2,w+4,h+4)})}catch(e){}return c}
+/* one screenshot (any length) -> text lines top to bottom, each with the aid number read from the right-hand column */
+async function readShot(w,file){const im=await loadImg(file),W=im.naturalWidth,H=im.naturalHeight,sc=W<900?Math.min(3,1080/W):W>1500?1440/W:1;
+  const SH=Math.round(W*2.4),OV=Math.round(W*.4),starts=[],out=[];if(H<=SH*1.15)starts.push(0);else for(let y=0;;y+=SH-OV){starts.push(y);if(y+SH>=H)break}
+  for(let k=0;k<starts.length;k++){const y0=starts[k],h=Math.min(H-y0,starts.length>1?SH:H);
+    await w.setParameters({tessedit_char_whitelist:''});const A=await w.recognize(deIcon(strip(im,0,y0,W,h,sc)));
+    const bx=Math.round(W*.72),sb=sc*(W*sc<1300?2:1.5);await w.setParameters({tessedit_char_whitelist:'U0123456789'});const B=await w.recognize(deIcon(strip(im,bx,y0,W-bx,h,sb)));
+    const aids=(B.data.lines||[]).map(l=>{const t=String(l.text||'').replace(/\s+/g,' ').trim(),m=t.match(/(?:^|\s)(U\d\d|\d{3})$/),c=t.replace(/\s/g,'');return l.bbox&&(m||(c.length>=1&&c.length<=4))?{a:m?m[1]:c+'?',y:(l.bbox.y0+l.bbox.y1)/2/sb}:null}).filter(Boolean);
+    const ls=A.data.lines&&A.data.lines.length?A.data.lines.map(l=>({t:String(l.text||'').replace(/\n/g,' '),y0:l.bbox.y0/sc,y1:l.bbox.y1/sc})):String(A.data.text||'').split('\n').map(t=>({t}));
+    if(window.__itDbg)window.__itDbg.push({k,A:ls.map(l=>Math.round(l.y0)+' '+l.t),B:(B.data.lines||[]).map(l=>Math.round((l.bbox.y0+l.bbox.y1)/2/sb)+' '+l.text.trim())});
+    ls.forEach(l=>{if(l.y0==null){out.push(l);return}if(k>0&&l.y0<OV/2)return;if(k<starts.length-1&&l.y0>=SH-OV/2)return;
+      const yc=(l.y0+l.y1)/2,hh=Math.max(8,l.y1-l.y0);const hit=aids.filter(a=>Math.abs(a.y-yc)<hh*.6).sort((p,q)=>Math.abs(p.y-yc)-Math.abs(q.y-yc))[0];out.push(hit?{t:l.t,aid:hit.a}:{t:l.t})})}
+  try{URL.revokeObjectURL(im.src)}catch(e){}return out}
+async function itUpload(files){files=[].slice.call(files).sort((a,b)=>(a.lastModified||0)-(b.lastModified||0)||String(a.name).localeCompare(String(b.name),undefined,{numeric:true}));
+  const L=LD(),key=IK();if(!files.length||!L)return;let w=null;
+  try{busy='Getting the reader ready…';itRender();const T=await loadT();w=await T.createWorker('eng');await w.setParameters({tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});
+    const it=itGet()||{src:[],ed:{}};let none=0;
+    for(let i=0;i<files.length;i++){busy='Reading screenshot '+(i+1)+' of '+files.length+'…';itRender();const tk=ItinCore.parse(await readShot(w,files[i]),L);if(tk.length)it.src.push(tk);else none++}
+    rebuild(it,L);it.at=Date.now();if(key===IK())itSet(it);
+    busy=none?(none===files.length?'Couldn\'t find any bags or overflow in '+(none>1?'those pictures':'that picture')+'. Make sure it\'s the Load screen from the delivery app.':none+' of the pictures didn\'t show any bags or overflow, so '+(none>1?'they were':'it was')+' skipped.'):''}
+  catch(e){busy='Couldn\'t read the screenshots — check your signal and try again.'}
+  try{w&&await w.terminate()}catch(e){}
+  itRender();try{renderLoad(drv)}catch(e){}paint()}
+const span=r=>r[0]===r[1]?'Stop '+r[0]:'Stops '+r[0]+'–'+r[1];
+const col=n=>{const c=String(n).split(' ')[0];return {bg:COLORS[c]||'#999',fg:(c==='Yellow'||c==='White')?'#16212B':'#fff'}};
+const chip=o=>'<span class="of-c">OF '+E(o.aid||'?')+'<small>'+E([o.sz&&o.sz!=='?'?o.sz+(o.cu?' custom':''):o.cu?'custom':o.ty==='Unknown'?'unknown':'',o.z||''].filter(Boolean).join(' · '))+'</small></span>';
+function problems(it,L){const s=it.st,p=[];
+  if(s.miss.length)p.push('<b>Bags not found yet:</b> '+s.miss.map(i=>E(L.b[i][1])).join(', '));
+  if(s.bad.length)p.push('<b>Stop numbers to check:</b> '+s.bad.map(i=>E(L.b[i][1])).join(', '));
+  if(s.short.length)p.push('<b>Overflow not found yet:</b> '+s.short.map(x=>E(x.z)+' ('+x.got+' of '+x.need+')').join(', '));return p}
+function itRender(){const o=$('itOv');if(!o||!drv)return;const L=LD(),it=itGet();
+  let h='<div class="it-top"><button type="button" id="itX">✕ Close</button><b>My itinerary</b></div><div class="it-sub">'+E(drv.n)+' · Route '+E(drv.r||'')+'</div>';
+  if(!L){o.innerHTML=h+'<div class="it-msg bad">There\'s no route sheet for this route today, so the itinerary can\'t be checked yet.</div>';return}
+  if(!it)h+='<ol class="it-how"><li>In the delivery app, open the <b>Load</b> screen — the list of bags with their stops, then the overflow packages.</li><li>Screenshot the whole list, top to bottom. One long screenshot or several regular ones both work.</li><li>Tap the button below and pick all of them from your gallery.</li></ol>';
+  h+='<label class="it-up">🖼️ '+(it?'Add more screenshots':'Choose screenshots')+'<input type="file" accept="image/*" multiple hidden id="itIn"></label><div class="it-st">'+E(busy)+'</div>';
+  if(it){const s=it.st,pr=problems(it,L);
+    h+=s.ok?'<div class="it-msg ok"><b>✓ Complete</b> — all '+L.b.length+' bags'+(s.ofNeed?' and all '+s.ofNeed+' overflow packages':'')+' on your route sheet were found. Your rescue buttons are on your card.</div>'
+      :'<div class="it-msg bad"><b>Not complete yet</b> — rescue buttons stay off until every bag and all the overflow on your route sheet are found.<ul><li>'+pr.join('</li><li>')+'</li></ul>Add the screenshot that shows what\'s missing'+(s.bad.length||s.miss.length?', or type the stop numbers in below':'')+'.</div>';
+    h+='<h3>Bags <small>'+(L.b.length-s.miss.length)+' of '+L.b.length+'</small></h3>';
+    L.b.forEach((b,i)=>{const r=(it.ed&&it.ed[i])||it.t[i]||['',''],c=col(b[1]),cls=s.miss.includes(i)?' miss':s.bad.includes(i)?' bad':'';
+      h+='<div class="it-r'+cls+'"><i style="background:'+c.bg+'"></i><span><b>'+E(b[1])+'</b><small>'+E(b[0]||'')+'</small></span><span class="it-s"><input inputmode="numeric" data-ti="'+i+'" data-e="0" value="'+E(r[0])+'" aria-label="First stop">–<input inputmode="numeric" data-ti="'+i+'" data-e="1" value="'+E(r[1])+'" aria-label="Last stop"></span><em>'+(it.t[i]&&!cls?(it.t[i][1]-it.t[i][0]+1)+' stops':cls?'check':'')+'</em></div>'});
+    if(L.o.length){h+='<h3>Overflow <small>'+s.ofGot+' of '+s.ofNeed+'</small></h3>';const seen={};
+      L.o.forEach(z=>{if(seen[z[0]])return;seen[z[0]]=1;const need=L.o.filter(x=>x[0]===z[0]).reduce((a,x)=>a+x[1],0),f=it.of.filter(x=>x.z===z[0]);
+        h+='<div class="it-z'+(f.length<need?' bad':'')+'"><span><b>'+E(z[0])+'</b><small>'+f.length+' of '+need+'</small></span><span class="it-a">'+f.map(x=>E(x.aid||'?')).join(' · ')+(f.length<need?' <button type="button" class="it-add" data-z="'+E(z[0])+'">＋ Add by hand</button>':'')+'</span></div>'})}
+    h+='<button type="button" class="it-clr" id="itClr">Start over</button>'}
+  o.innerHTML=h}
+function itOpen(){if(!mine())return;let o=$('itOv');if(!o){o=document.createElement('div');o.id='itOv';document.body.appendChild(o);
+  o.addEventListener('click',async e=>{if(e.target.id==='itX'){o.remove();busy='';try{renderLoad(drv)}catch(e){}paint();return}
+    const ad=e.target.closest&&e.target.closest('.it-add');if(ad){const a=(prompt('Driver aid number on the '+ad.dataset.z+' overflow package (like 646 or U96):')||'').trim().toUpperCase();if(!a)return;const L=LD(),it=itGet();if(!it||!L)return;it.man=it.man||[];it.man.push({z:ad.dataset.z,aid:a});rebuild(it,L);itSet(it);itRender();paint();return}
+    if(e.target.id==='itClr'&&await ask('Start over?<small>This clears the itinerary you uploaded for today.</small>','Clear it')){itSet(null);busy='';itRender();paint()}});
+  o.addEventListener('change',e=>{const t=e.target;if(t.id==='itIn'){const f=t.files;itUpload(f);t.value='';return}
+    if(t.dataset.ti!=null){const L=LD(),it=itGet();if(!it||!L)return;const i=+t.dataset.ti,ins=o.querySelectorAll('input[data-ti="'+i+'"]'),a=parseInt(ins[0].value,10),b=parseInt(ins[1].value,10);
+      it.ed=it.ed||{};if(a>0&&b>0)it.ed[i]=[a,b];else delete it.ed[i];rebuild(it,L);itSet(it);itRender();paint()}})}
+  busy='';itRender()}
+ib.addEventListener('click',itOpen);
+
+/* ================= rescue options on the driver's own card ================= */
+let rzN=0;
+function cardRender(){const box=$('ldBox');if(!box)return;box.querySelectorAll('.rz,.tsr').forEach(x=>x.remove());if(!mine())return;const L=LD();if(!L)return;const it=itGet();
+  const w=document.createElement('div');w.className='rz';let h='<div class="rz-h">🛟 Rescue options</div>';
+  if(!it)h+='<div class="rz-n">Upload screenshots of your itinerary to see which bags and overflow to hand off for a 15, 20 or 25 stop rescue.</div><button type="button" class="rz-up" data-it="1">📋 Upload my itinerary</button>';
+  else if(!it.st||!it.st.ok)h+='<div class="rz-n bad">Your itinerary isn\'t complete yet, so rescue options are off.<br>'+problems(it,L).join('<br>')+'</div><button type="button" class="rz-up" data-it="1">📋 Finish my itinerary</button>';
+  else{if(it.of.length){const n=ldGet(it).length;h='<button type="button" class="rz-of" data-of="1">📦 Overflow load board<span>'+n+' of '+it.of.length+' loaded</span></button>'+h}
+    box.querySelectorAll('.tc').forEach(t=>{const r=it.t[+t.dataset.i],m=t.querySelector('.tm');if(r&&m){const d=document.createElement('div');d.className='tsr';d.textContent=span(r);m.after(d)}});
+    const off=L.b.map((b,i)=>toteOff(drv.n,i)?i:-1).filter(i=>i>=0),left=L.b.map((b,i)=>i).filter(i=>!off.includes(i));
+    const lr=left.map(i=>it.t[i].slice()).sort((x,y)=>x[0]-y[0]),lu=[];lr.forEach(r=>{const l=lu[lu.length-1];if(l&&r[0]<=l[1]+1)l[1]=Math.max(l[1],r[1]);else lu.push(r)});const ls=lu.reduce((a,r)=>a+r[1]-r[0]+1,0);
+    h+='<div class="rz-n"><b>'+left.length+'</b> bag'+(left.length===1?'':'s')+' · about <b>'+ls+'</b> stops left. Triple-tap a bag when it\'s finished so it\'s left out.</div>';
+    if(!left.length)h+='<div class="rz-n">Every bag is marked finished.</div>';
+    else{h+='<div class="rz-b">'+[15,20,25].map(n=>'<button type="button" data-n="'+n+'" class="'+(rzN===n?'on':'')+'">Rescue '+n+'</button>').join('')+'</div>';
+      if(rzN){const R=ItinCore.options(it,L,off,rzN);if(!R.fit)h+='<div class="rz-n">Nothing left adds up to about '+rzN+' stops. Closest:</div>';
+        R.list.forEach(o=>{const bags=L.b.slice(o.i,o.j+1),pk=bags.reduce((a,b)=>a+b[2],0);
+          h+='<div class="rz-o"><div class="rz-t"><b>'+o.cnt+' stops</b><span>'+o.U.map(span).join(', ')+'</span><em>'+(o.diff?(o.diff>0?'+':'−')+Math.abs(o.diff):'exact')+'</em></div><div class="rz-g">'+bags.map(b=>{const c=col(b[1]);return '<span style="background:'+c.bg+';color:'+c.fg+'">'+E(b[1])+'</span>'}).join('')+'</div><div class="rz-s">'+bags.length+' bag'+(bags.length>1?'s':'')+' · '+pk+' packages in bags</div>'+
+            (o.mix.length?'<div class="rz-mx">⚠️ '+o.mix.map(m=>E(L.b[m[0]][1])+' shares stops with '+E(L.b[m[1]][1])).join('; ')+' — don\'t hand over the whole bag, only pull the packages for the rescued stops.</div>':'')+
+            (o.sure.length?'<div class="rz-l">Overflow that goes with it ('+o.sure.length+')</div><div class="rz-c">'+o.sure.map(chip).join('')+'</div>':'')+
+            (o.maybe.length?'<div class="rz-l ck">Check these first ('+o.maybe.length+') — the app lists them under '+[...new Set(o.maybe.map(x=>x.g?span(x.g).toLowerCase():'other stops'))].join(' and ')+', so some may be for stops you\'re keeping</div><div class="rz-c ck">'+o.maybe.map(chip).join('')+'</div>':'')+
+            (!o.sure.length&&!o.maybe.length?'<div class="rz-l">No overflow goes with '+(bags.length>1?'these bags':'this bag')+'</div>':'')+'</div>'})}}}
+  w.innerHTML=h;box.appendChild(w)}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.rz button');if(!b)return;if(b.dataset.it){itOpen();return}if(b.dataset.of){ofOpen();return}if(b.dataset.n){rzN=rzN===+b.dataset.n?0:+b.dataset.n;cardRender()}});
+/* ================= overflow load board (6 wide, A-G) ================= */
+const OK_=()=>'ofld|'+cur+'|'+(drv&&drv.n);
+function ldGet(it){try{const v=JSON.parse(localStorage.getItem(OK_())||'null');return v&&v.at===it.at?v.on:[]}catch(e){return []}}
+function ldSet(it,on){try{localStorage.setItem(OK_(),JSON.stringify({at:it.at,on}))}catch(e){}}
+function ofRender(){const o=$('ofOv');if(!o||!drv)return;const L=LD(),it=itGet();if(!L||!it||!it.st.ok){o.remove();return}
+  const zt={};try{placeOF(L,drv.r).forEach(p=>{if(zt[p.z]==null||p.k!=='est')zt[p.z]=p.t})}catch(e){}
+  const G=ItinCore.guess(it,L,zt),on=ldGet(it),rows=Math.max(7,Math.ceil(it.of.length/6));
+  let h='<div class="it-top"><button type="button" id="ofX">✕ Close</button><b>Overflow</b><span class="of-n"><b>'+on.length+'</b> of '+it.of.length+' loaded</span></div><div class="it-sub">In order, first stop to last — tap each one as you load it into the van.</div><div class="of-g"><div class="of-wm"><span>First</span><span>Last</span></div><div class="of-hd"><i></i>'+[1,2,3,4,5,6].map(n=>'<b>'+n+'</b>').join('')+'</div>';
+  for(let r=0;r<rows;r++){h+='<div class="of-r"><b>'+String.fromCharCode(65+r)+'</b>';
+    for(let c=0;c<6;c++){const k=r*6+c,x=it.of[k];if(!x){h+='<i></i>';continue}const g=G[k],tc=g.ti>=0?col(L.b[g.ti][1]).bg:'transparent';
+      h+='<button type="button" data-k="'+k+'" class="'+(on.includes(k)?'on':'')+'" style="border-top-color:'+tc+'"><b>'+E(x.aid||'?')+'</b><small>'+E(x.sz&&x.sz!=='?'?x.sz+(x.cu?' cust':''):x.cu?'cust':x.ty==='Unknown'?'unkn':'')+'</small><small>'+(g.lo===g.hi?'stop '+g.lo:g.lo+'–'+g.hi)+'</small></button>'}
+    h+='</div>'}
+  h+='</div><div class="of-k">Hold a button to fix its aid number. Small numbers = the stops each one is for (exact when the app shows it, otherwise the range it falls in). Color bar = the bag it most likely goes with.</div>'+(on.length?'<button type="button" class="it-clr" id="ofClr">Clear loaded marks</button>':'');
+  o.innerHTML=h}
+function ofOpen(){if(!mine())return;let o=$('ofOv');if(!o){o=document.createElement('div');o.id='ofOv';document.body.appendChild(o);
+  o.addEventListener('click',e=>{const it=itGet();if(e.target.id==='ofX'){o.remove();try{renderLoad(drv)}catch(e){}return}if(!it)return;if(e.target.id==='ofClr'){ldSet(it,[]);ofRender();return}
+    const b=e.target.closest('button[data-k]');if(!b)return;if(Date.now()-(window._ofHeld||0)<600)return;const k=+b.dataset.k,on=ldGet(it),i=on.indexOf(k);if(i>=0)on.splice(i,1);else on.push(k);ldSet(it,on);try{navigator.vibrate&&navigator.vibrate(20)}catch(e){}ofRender()})}
+  if(!o._hold){o._hold=1;let t=null;o.addEventListener('pointerdown',e=>{const b=e.target.closest('button[data-k]');if(!b)return;t=setTimeout(()=>{t=null;window._ofHeld=Date.now();const it=itGet(),L=LD();if(!it||!L)return;const k=+b.dataset.k,x=it.of[k];
+      const v=(prompt('Fix the aid number for this '+(x.z||'')+' overflow package:',(x.aid||'').replace(/\?$/,''))||'').trim().toUpperCase();if(!v)return;it.fix=it.fix||{};it.fix[k]=v;x.aid=v;itSet(it);ofRender()},600)});
+    ['pointerup','pointerleave','pointercancel'].forEach(n=>o.addEventListener(n,()=>{if(t){clearTimeout(t);t=null}}));o.addEventListener('contextmenu',e=>{if(e.target.closest('button[data-k]'))e.preventDefault()})}
+  ofRender()}
+const _rl=renderLoad;renderLoad=function(){_rl.apply(this,arguments);try{cardRender()}catch(e){}};
+const _route=route;route=function(){_route.apply(this,arguments);paint()};
+route();
+})();
+</script>
 </body></html><script>
 (function(){
 function fit(){document.querySelectorAll('#rows .nb .nm').forEach(function(el){
@@ -1177,7 +1493,7 @@ function flush(){upPhotos();if(!SB_URL||!SB_KEY||sending)return;var q=qGet();if(
   fetch(SB_URL.replace(/\/$/,'')+'/rest/v1/rpc/save_package_reports',{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({rows:q.map(function(x){var o={};for(var k in x)if(k!=='_t')o[k]=x[k];return o})})})
   .then(function(r){sending=false;if(r.ok){var n=qGet();qSet(n.filter(function(x){return !q.some(function(y){return y.key===x.key&&y._t===x._t})}).map(function(x){return x}))}},function(){sending=false})}
 function send(c,pi){if(!drv)return;var p=c.pk[pi],k=cur+'|'+drv.n+'|'+c.id+'-'+pi;var q=qGet().filter(function(x){return x.key!==k});
-  q.push({key:k,report_date:cur,driver:drv.n,route:drv.r||null,issue:({m:'MISSING',d:'DAMAGED',s:'MISSORT'})[p.st]||null,address:p.addr||c.addr||null,aid:p.aid||null,tba:p.tba||null,pkg_type:(p.type||'').replace(/^\((\w+)\) /,'$1 ')||null,photo_path:(p.st==='d'&&c.photo_path)||null,_t:Date.now()});
+  q.push({key:k,report_date:cur,driver:drv.n,route:drv.r||null,issue:({m:'MISSING',d:'DAMAGED',s:'MISSORT'})[p.st]||null,address:p.addr||c.addr||null,aid:p.aid||null,tba:p.tba||null,pkg_type:[(p.type||'').replace(/^\((\w+)\) /,'$1 '),p.of?'overflow':''].filter(Boolean).join(' · ')||null,photo_path:(p.st==='d'&&c.photo_path)||null,_t:Date.now()});
   qSet(q);flush();}
 function sendCard(c){c.pk.forEach(function(p,pi){if(p.st&&p.st!=='k')send(c,pi)})}
 addEventListener('online',flush);setInterval(flush,60000);
@@ -1190,12 +1506,13 @@ function near(a,b){if(!a||!b||a.length!==b.length)return false;var d=0;for(var i
 function cleanAddr(c){c=c.replace(/\s+[^\w\s]+$/,'').trim();while(/\s[A-Za-z]{1,2}$/.test(c)&&!SUF.test(c.split(' ').pop()))c=c.replace(/\s[A-Za-z]{1,2}$/,'');
   if(!SUF.test(c)&&SUF2.test(c))c=c.replace(SUF2,'$1 $2');return c.toUpperCase().replace(/\s+/g,' ')}
 function parse(text){
-  var L=text.split('\n').map(function(x){return x.trim()}).filter(Boolean),pk=[],aid=null,typ='',cur='',first='',prev='';
-  function add(o){
+  var L=text.split('\n').map(function(x){return x.trim()}).filter(Boolean),pk=[],aid=null,typ='',cur='',first='',prev='',pof=false;
+  function add(o){if(pof){o.of=true;pof=false}
     var dup=pk.filter(function(p){return (o.tba&&p.tba&&(p.tba===o.tba||near(p.tba,o.tba)))||(o.aid&&p.aid===o.aid&&(!o.tba||!p.tba||near(p.tba,o.tba)))})[0];
-    if(dup){if(dup.tba&&o.tba&&dup.tba!==o.tba){dup.alt=dup.alt||{};for(var q=0;q<o.tba.length;q++)if(o.tba[q]!==dup.tba[q]){(dup.alt[q]=dup.alt[q]||[dup.tba[q]]).indexOf(o.tba[q])<0&&dup.alt[q].push(o.tba[q])}}if(!dup.tba&&o.tba)dup.tba=o.tba;if(!dup.aid&&o.aid)dup.aid=o.aid;if((!dup.type||dup.type.length<o.type.length)&&o.type)dup.type=o.type;return}
+    if(dup){if(o.of)dup.of=true;if(dup.tba&&o.tba&&dup.tba!==o.tba){dup.alt=dup.alt||{};for(var q=0;q<o.tba.length;q++)if(o.tba[q]!==dup.tba[q]){(dup.alt[q]=dup.alt[q]||[dup.tba[q]]).indexOf(o.tba[q])<0&&dup.alt[q].push(o.tba[q])}}if(!dup.tba&&o.tba)dup.tba=o.tba;if(!dup.aid&&o.aid)dup.aid=o.aid;if((!dup.type||dup.type.length<o.type.length)&&o.type)dup.type=o.type;return}
     pk.push(o)}
   L.forEach(function(l){
+    if(/\b(not in|out of) bag\b/i.test(l)){if(aid)pof=true;else if(pk.length)pk[pk.length-1].of=true}
     if(!/^\d{1,2}:\d/.test(l)){var am=l.match(/(?:^|[^\d:])(\d{2,6})\.?\s+([A-Za-z][A-Za-z0-9 .'-]{2,40})/);
       if(am){var c=cleanAddr(am[1]+' '+am[2]);if(SUF.test(c)){cur=c;if(!first)first=c}}}
     if(/\bMI\s+48\d{3}/.test(l)&&/^\d{2,6}\s/.test(prev)&&!first){first=cur=cleanAddr(prev)}
@@ -1263,7 +1580,7 @@ async function upload(files){
 }
 function msg(){
   var a=load(),M=[],D=[],S=[];
-  a.forEach(function(c){c.pk.forEach(function(p){if(p.st&&p.st!=='k')({m:M,d:D,s:S}[p.st]).push('• '+(p.addr||c.addr||'Address ?')+' — Aid '+(p.aid||'?')+' — '+(p.tba||'TBA ?')+((p.bad||(p.unsure&&p.unsure.length))&&!p.tbaOk?' (TBA not verified)':'')+(p.type?' ('+p.type.replace(/^\((\w+)\) /,'$1 ')+')':''))})});
+  a.forEach(function(c){c.pk.forEach(function(p){if(p.st&&p.st!=='k')({m:M,d:D,s:S}[p.st]).push('• '+(p.addr||c.addr||'Address ?')+' — Aid '+(p.aid||'?')+' — '+(p.tba||'TBA ?')+((p.bad||(p.unsure&&p.unsure.length))&&!p.tbaOk?' (TBA not verified)':'')+(p.type||p.of?' ('+[(p.type||'').replace(/^\((\w+)\) /,'$1 '),p.of?'overflow':''].filter(Boolean).join(', ')+')':''))})});
   if(!M.length&&!D.length&&!S.length)return '';
   var d=new Date(cur+'T12:00:00'),ds=(d.getMonth()+1)+'/'+d.getDate();
   var t=drv.n+' — Package report';
@@ -1272,7 +1589,7 @@ function msg(){
   if(S.length)t+='\n\nMISSORT ('+S.length+'):\n'+S.join('\n');
   return t;
 }
-var TYPES=['Envelope','Plastic bag','(S) Box','(M) Box','(L) Box','(XL) Box'];
+var TYPES=['Envelope','Plastic bag','(S) Box','(M) Box','(L) Box','(XL) Box','(S) Customized box','(M) Customized box','(L) Customized box','(XL) Customized box','Unknown'];
 function tsel(ci,pi,t){var o='<option value="">Type</option>',hit=false;TYPES.forEach(function(x){var on=t===x;hit=hit||on;o+='<option'+(on?' selected':'')+'>'+x+'</option>'});if(t&&!hit)o+='<option selected>'+esc(t)+'</option>';return '<select data-c="'+ci+'" data-p="'+pi+'" data-f="type">'+o+'</select>'}
 function tbaFix(ci,pi,p){if(p.tbaOk||!p.tba&&!p.bad)return '';
   if(p.bad)return '<div class="pp-u">⚠️ The scanner couldn\'t read the whole TBA. Type it in from the label (TBA + 12 digits).</div>';
@@ -1295,14 +1612,17 @@ function render(){
   var B=document.getElementById('ppBox');if(!B||!drv)return;var a=load(),t=msg();
   var h='<h4>Missing / Damaged / Missort Packages</h4><label class="pp-up">🖼️ Upload from gallery<input type="file" accept="image/*" multiple hidden id="ppIn"></label><div class="pp-st">'+esc(busy)+'</div>';
   a.forEach(function(c,ci){
+    var hid=c.pk.filter(function(p){return p.st==='k'}).length,vis=c.pk.length-hid,okn=hid?'<button class="pp-okn" data-unok="'+ci+'">✓ '+hid+' package'+(hid>1?'s':'')+' marked OK and hidden — tap to bring '+(hid>1?'them':'it')+' back</button>':'';
+    if(!vis){h+='<div class="pp-c">'+okn+'</div>';return}
     h+='<div class="pp-c"><div class="pp-h">'+(c.img?'<img src="'+c.img+'" alt="">':'<span></span>')+'<div><input data-c="'+ci+'" data-f="addr" value="'+esc(c.addr)+'" placeholder="Stop address">'+(c.photo?'<div class="pp-st" style="text-align:left;margin:3px 0 0;font-size:12px">📸 Package photo — '+(c.photo_path?'sent to dispatch with Damaged':'goes to dispatch if marked Damaged')+'</div>':'')+'</div><button class="pp-x" data-del="'+ci+'" aria-label="Remove">✕</button></div>';
-    if(c.pk.length>1)h+='<div class="pp-st" style="text-align:left;margin:6px 0 0">'+c.pk.length+' packages on this picture — mark each one — OK packages are left out of the dispatch text.</div>';
-    c.pk.forEach(function(p,pi){
+    if(vis>1)h+='<div class="pp-st" style="text-align:left;margin:6px 0 0">'+vis+' packages on this picture — mark each one. Tap OK on any that are fine and they drop off the list.</div>';
+    if(vis>1)h+='<div class="pp-b pp-all"><button class="m" data-c="'+ci+'" data-all="m">All missing</button><button class="d" data-c="'+ci+'" data-all="d">All damaged</button><button class="s" data-c="'+ci+'" data-all="s">All missort</button><span></span></div>';
+    c.pk.forEach(function(p,pi){if(p.st==='k')return;
       var multi=c.pk.some(function(q){return q.addr&&q.addr!==c.addr});
-      h+='<div class="pp-p">'+(multi?'<input data-c="'+ci+'" data-p="'+pi+'" data-f="addr" value="'+esc(p.addr||'')+'" placeholder="Package address" style="margin-bottom:5px">':'')+'<div class="pp-k"><input data-c="'+ci+'" data-p="'+pi+'" data-f="aid" value="'+esc(p.aid)+'" placeholder="Aid #"><input data-c="'+ci+'" data-p="'+pi+'" data-f="tba" value="'+esc(p.tba)+'" placeholder="TBA number"'+((p.bad||(p.unsure&&p.unsure.length))&&!p.tbaOk?' style="border:2px solid #F59E0B;background:#FFFBEB"':'')+'>'+tsel(ci,pi,p.type)+'</div>'+tbaFix(ci,pi,p)+
+      h+='<div class="pp-p">'+(multi?'<input data-c="'+ci+'" data-p="'+pi+'" data-f="addr" value="'+esc(p.addr||'')+'" placeholder="Package address" style="margin-bottom:5px">':'')+'<div class="pp-k"><button class="pp-of'+(p.of?' on':'')+'" data-c="'+ci+'" data-p="'+pi+'" data-of="1" title="Overflow — not in a bag">OF</button><input data-c="'+ci+'" data-p="'+pi+'" data-f="aid" value="'+esc(p.aid)+'" placeholder="Aid #"><input data-c="'+ci+'" data-p="'+pi+'" data-f="tba" value="'+esc(p.tba)+'" placeholder="TBA number"'+((p.bad||(p.unsure&&p.unsure.length))&&!p.tbaOk?' style="border:2px solid #F59E0B;background:#FFFBEB"':'')+'>'+tsel(ci,pi,p.type)+'</div>'+tbaFix(ci,pi,p)+
       '<div class="pp-b"><button class="m'+(p.st==='m'?' on':'')+'" data-c="'+ci+'" data-p="'+pi+'" data-s="m">Missing</button><button class="d'+(p.st==='d'?' on':'')+'" data-c="'+ci+'" data-p="'+pi+'" data-s="d">Damaged</button><button class="s'+(p.st==='s'?' on':'')+'" data-c="'+ci+'" data-p="'+pi+'" data-s="s">Missort</button><button class="k'+(p.st==='k'?' on':'')+'" data-c="'+ci+'" data-p="'+pi+'" data-s="k">OK</button></div></div>';
     });
-    h+='<button class="pp-add" data-addp="'+ci+'">+ Add package by hand</button></div>';
+    h+=okn+'<button class="pp-add" data-addp="'+ci+'">+ Add package by hand</button></div>';
   });
   var st=supMsg();
   if(t)h+='<pre>'+esc(t)+'</pre><div class="pp-t"'+(st?'':' style="grid-template-columns:1fr"')+'><a class="s" href="sms:+12488810737?&body='+encodeURIComponent(t)+'">💬 Text dispatch</a>'+(st?'<button class="pp-sup2'+(supOpen?' on':'')+'" id="ppSup">🛟 Driver Support '+(supOpen?'▴':'▾')+'</button>':'')+'</div>';
@@ -1316,6 +1636,9 @@ document.addEventListener('input',function(e){var el=e.target;if(!el.closest||!e
   var t=msg(),pre=document.querySelector('#ppBox pre');if(pre&&t){pre.textContent=t;document.querySelector('#ppBox .pp-t .s').href='sms:+12488810737?&body='+encodeURIComponent(t)}});
 document.addEventListener('focusout',function(e){if(e.target.closest&&e.target.closest('#ppBox')&&e.target.dataset.f){var c=load()[+e.target.dataset.c];if(c)sendCard(c);render()}});
 document.addEventListener('click',function(e){var el=e.target.closest&&e.target.closest('#ppBox button');if(!el)return;var a=load();
+  if(el.dataset.unok!=null){a[+el.dataset.unok].pk.forEach(function(p){if(p.st==='k')p.st=''});save(a);render();return}
+  if(el.dataset.of){var po=a[+el.dataset.c].pk[+el.dataset.p];po.of=!po.of;save(a);if(po.st&&po.st!=='k')send(a[+el.dataset.c],+el.dataset.p);render();return}
+  if(el.dataset.all){var C=a[+el.dataset.c];C.pk.forEach(function(p){if(p.st!=='k')p.st=el.dataset.all});save(a);sendCard(C);upPhotos();render();return}
   if(el.dataset.tok){a[+el.dataset.c].pk[+el.dataset.p].tbaOk=true;save(a);sendCard(a[+el.dataset.c]);render();return}
   if(el.dataset.s){var p=a[+el.dataset.c].pk[+el.dataset.p];var was=p.st;p.st=p.st===el.dataset.s?'':el.dataset.s;save(a);if(was||p.st)send(a[+el.dataset.c],+el.dataset.p);upPhotos()}
   else if(el.dataset.del!=null){var dc=a[+el.dataset.del];dc.pk.forEach(function(p,pi){if(p.st&&p.st!=='k'){p.st='';send(dc,pi)}});a.splice(+el.dataset.del,1)}
@@ -1413,6 +1736,12 @@ function openPick(){var n=drv.n,curv=mins(get(n,'in')||B())-mins(B()),h='';
   var p=document.createElement('div');p.id='tsPick';p.innerHTML='<div class="tp-box"><div class="tp-h">Time IN <small>scroll up = early · down = late</small></div><div class="tp-l">'+h+'</div><button class="tp-c">Cancel</button></div>';
   document.body.appendChild(p);var l=p.querySelector('.tp-l'),sel=p.querySelector('.sel')||p.querySelector('.z');requestAnimationFrame(function(){l.scrollTop=sel.offsetTop-l.offsetTop-l.clientHeight/2+sel.offsetHeight/2});
   p.addEventListener('click',function(e){var b=e.target.closest('button');if(e.target===p||(b&&b.classList.contains('tp-c'))){p.remove();return}if(!b||b.dataset.d==null)return;set(drv.n,'in',hhmm(mins(B())+(+b.dataset.d)));p.remove();render()})}
+function openOutPick(){var n=drv.n,ot=get(n,'out');if(!ot)return;var had=get(n,'outBase'),ob=had||ot,curv=((mins(ot)-mins(ob)+2160)%1440)-720,h='',sgd=!!get(n,'signed');
+  for(var i=-120;i<=120;i++)h+=i===0?'<button data-d="0" class="z'+(curv===0?' sel':'')+'">'+fmt12(ob)+' <span>'+(had?'as signed':'no change')+'</span></button>':'<button data-d="'+i+'" class="'+(i<0?'e':'l')+(curv===i?' sel':'')+'">'+(i<0?'−':'+')+Math.abs(i)+' minute'+(Math.abs(i)>1?'s':'')+' <span>'+fmt12(hhmm(mins(ob)+i))+'</span></button>';
+  var p=document.createElement('div');p.id='tsPick';p.innerHTML='<div class="tp-box"><div class="tp-h">Time OUT <small>scroll up = earlier · down = later</small></div>'+(sgd?'<div class="tp-w">Picking a time unsigns your card. You\'ll tap the three buttons again to sign it.</div>':'')+'<div class="tp-l">'+h+'</div><button class="tp-c">Cancel</button></div>';
+  document.body.appendChild(p);var l=p.querySelector('.tp-l'),sel=p.querySelector('.sel')||p.querySelector('.z');requestAnimationFrame(function(){l.scrollTop=sel.offsetTop-l.offsetTop-l.clientHeight/2+sel.offsetHeight/2});
+  p.addEventListener('click',function(e){var b=e.target.closest('button');if(e.target===p||(b&&b.classList.contains('tp-c'))){p.remove();return}if(!b||b.dataset.d==null)return;
+    if(!had)set(n,'outBase',ob);set(n,'out',hhmm(mins(ob)+(+b.dataset.d)));set(n,'outAdj','1');if(get(n,'signed'))set(n,'signed','');window.tsStep=1;p.remove();render()})}
 function render(){var o=document.getElementById('tsOv');if(!o||!drv)return;var d=drv,n=d.n;
   var dt=new Date(cur+'T12:00:00'),ds=(dt.getMonth()+1)+'-'+dt.getDate()+'-'+String(dt.getFullYear()).slice(2);
   var LD=((typeof LOAD!=='undefined'?LOAD:{})[cur]||{})[String(d.r||'').replace(/\s+/,' ')],bags=LD?LD.b:[];
@@ -1435,7 +1764,12 @@ function render(){var o=document.getElementById('tsOv');if(!o||!drv)return;var d
    (function(){var ls=get(n,'lunchS'),le=get(n,'lunchE'),sum=ls?fmt12(ls)+(le?' – '+fmt12(le):''):'';
      return '<button class="ts-lu'+(lunchOpen?' open':'')+'" id="tsLunch">🍴 Lunch'+(sum?' <small>'+e2(sum)+'</small>':'')+'<em>'+(lunchOpen?'▴':'▾')+'</em></button>'+
      (lunchOpen?'<div class="ts-lb"><div class="ts-f"><span>Start:</span><input type="time" data-f="lunchS" value="'+e2(ls||'')+'"></div><div class="ts-f"><span>End:</span><input type="time" data-f="lunchE" value="'+e2(le||'')+'"></div></div>':'')})()+
-   '<div class="ts-f"><span>Time OUT:</span><b style="flex:1;border-bottom:2px solid #111;padding:4px 6px;font:800 17px Arial;color:'+(get(n,'out')?'#1d4ed8':'#94a3b8')+'">'+(get(n,'out')?e2(fmt12(get(n,'out'))):'<span style="font:600 13px Arial">Fills in when you sign</span>')+'</b></div>'+
+   (function(){var ot=get(n,'out'),ob=get(n,'outBase');
+     if(!ot)return '<div class="ts-f"><span>Time OUT:</span><b style="flex:1;border-bottom:2px solid #111;padding:4px 6px;font:800 17px Arial;color:#94a3b8"><span style="font:600 13px Arial">Fills in when you sign</span></b></div>';
+     var df=ob?((mins(ot)-mins(ob)+2160)%1440)-720:0;
+     return '<div class="ts-f"><span>Time OUT:</span><button class="ts-in" id="tsOut" style="color:#1d4ed8;border-bottom-color:#1d4ed8">'+e2(fmt12(ot))+(sg?'':' <small>▾</small>')+'</button><button class="ts-lk'+(sg?' on':'')+'" id="tsOLk" title="'+(sg?'Locked — tap to change your Time OUT':'Sign below to lock it in')+'">'+(sg?'🔒':'')+'</button></div>'+
+      (sg?'<div class="ts-lkh" style="color:#64748b">Tap the lock to change your Time OUT</div>':'<div class="ts-lkh">Sign again below to lock in this time</div>')+
+      (df?'<div class="ts-syn" style="color:#1d4ed8">('+Math.abs(df)+' minute'+(Math.abs(df)>1?'s':'')+' '+(df<0?'earlier':'later')+' than when you signed)</div>':'')})()+
    '<div class="ts-f" style="margin-top:14px"><span>End of Shift Mileage:</span></div>'+
    '<div class="ts-mi"><button id="tsMType">⌨️ Type it in</button><label class="ts-cam">📷 Photo<input type="file" accept="image/*" capture="environment" id="tsMCam" hidden></label></div>'+
    ((get(n,'mileage')||miOpen)?'<div class="ts-f"><input inputmode="numeric" data-f="mileage" id="tsMIn" placeholder="Odometer" value="'+e2(get(n,'mileage')||'')+'"'+(miNote?' style="background:#FEF3C7"':'')+'></div>':'')+
@@ -1491,9 +1825,10 @@ window.openTimesheet=function(){if(!drv)return;var o=document.getElementById('ts
     if(e.target.closest&&e.target.closest('#tsIn')){if(get(drv.n,'inLock')==='1'){var k=document.getElementById('tsLk');k.classList.add('shake');setTimeout(function(){k.classList.remove('shake')},500);return}openPick();return}
     if(e.target.id==='tsMType'){miOpen=true;miNote='';render();var i=document.getElementById('tsMIn');if(i){i.focus();i.select()}return}
     var lb=e.target.closest&&e.target.closest('#tsLunch');if(lb){lunchOpen=!lunchOpen;render();return}
+    if(e.target.closest&&(e.target.closest('#tsOLk')||e.target.closest('#tsOut'))){openOutPick();return}
     if(e.target.id==='tsSign'){var _miss=[];if(!get(drv.n,'inLock'))_miss.push('lock in your Time IN (tap the red circle)');if(!get(drv.n,'mileage'))_miss.push('enter your End of Shift Mileage');if(_miss.length){var _w=document.getElementById('tsWarn');if(_w){_w.textContent='Before you can sign, '+_miss.join(' and ')+'.';_w.hidden=false}return}window.tsStep=1;render()}
-    if(e.target.id==='tsUn'){set(drv.n,'signed','');set(drv.n,'out','');window.tsStep=0;render()}
-    var ss=e.target.closest&&e.target.closest('[data-ss]');if(ss&&!get(drv.n,'signed')){var k=+ss.dataset.ss;if(k===window.tsStep){if(k<3){window.tsStep=k+1}else{window.tsStep=0;var _d=new Date();set(drv.n,'out',('0'+_d.getHours()).slice(-2)+':'+('0'+_d.getMinutes()).slice(-2));set(drv.n,'signed',String(_d.getTime()))}render()}}})}
+    if(e.target.id==='tsUn'){set(drv.n,'signed','');set(drv.n,'out','');set(drv.n,'outAdj','');set(drv.n,'outBase','');window.tsStep=0;render()}
+    var ss=e.target.closest&&e.target.closest('[data-ss]');if(ss&&!get(drv.n,'signed')){var k=+ss.dataset.ss;if(k===window.tsStep){if(k<3){window.tsStep=k+1}else{window.tsStep=0;var _d=new Date(),_nw=('0'+_d.getHours()).slice(-2)+':'+('0'+_d.getMinutes()).slice(-2);if(get(drv.n,'outAdj')!=='1'||!get(drv.n,'out')){set(drv.n,'out',_nw);set(drv.n,'outBase',_nw)}set(drv.n,'signed',String(_d.getTime()))}render()}}})}
   try{sendDay(drv.n,'van',drv.v||'');sendDay(drv.n,'route',drv.r||'');sendDay(drv.n,'stage',(drv.s||'').trim())}catch(e){}
   if(get(drv.n,'fuel')==null)set(drv.n,'fuel','no');
   if(!get(drv.n,'in'))set(drv.n,'in',B());
