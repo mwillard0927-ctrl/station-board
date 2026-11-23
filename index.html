@@ -101,6 +101,7 @@ dialog input{width:100%;font-size:26px;padding:12px;border-radius:12px;border:2p
 #rows .nb .sp,#rows.six .nb .sp{position:absolute;left:0;right:0;bottom:5px;font-size:12px;margin:0;line-height:1;text-align:center}#rows .nb,#rows.six .nb{padding-bottom:20px}
 </style>
 <header>
+<style>body:has(#list.hidden) #upCorner{display:none}#upCorner{position:absolute;top:calc(3px + env(safe-area-inset-top,0px));left:calc(4px + env(safe-area-inset-left,0px));width:34px;z-index:5}#upBtn{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:1;padding:0;border:0;border-radius:6px;background:#ff9900;color:#232f3e;font:900 8px/1.05 system-ui,sans-serif;letter-spacing:.3px;cursor:pointer;-webkit-tap-highlight-color:transparent}#upBtn b{font-size:13px;line-height:1}#upBtn:disabled{opacity:.6}#upMsg{position:fixed;left:50%;top:calc(46px + env(safe-area-inset-top,0px));transform:translateX(-50%);max-width:92vw;background:#232f3e;color:#fff;border:1px solid #ff9900;border-radius:8px;padding:8px 12px;font:600 13px/1.3 system-ui,sans-serif;z-index:300;display:none;text-align:center}</style>
 <style>body:has(#list.hidden) #qrCorner{display:none}#qrCorner{position:absolute;top:calc(3px + env(safe-area-inset-top,0px));right:calc(4px + env(safe-area-inset-right,0px));width:34px;display:flex;flex-direction:column;align-items:center;gap:0;z-index:5}#qrCorner .ar{color:#ff9900;font-size:12px;line-height:1;font-weight:900}#qrCorner .sl{color:#ff9900;font-size:9px;line-height:1;font-weight:900;letter-spacing:1px}#qrBtn{display:block;width:100%;aspect-ratio:1;padding:0;border:0;background:#fff;border-radius:6px;cursor:pointer;-webkit-tap-highlight-color:transparent}#qrBtn img{width:100%;height:100%;display:block;border-radius:6px}#qrShade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:200}#qrBig{position:fixed;z-index:201;border-radius:6px;background:#fff;transform-origin:0 0;display:none;cursor:pointer;max-width:none}</style>
   <h1>Driver Route Sheet</h1>
   <div class="sub" id="dateLbl"></div>
@@ -109,6 +110,26 @@ dialog input{width:100%;font-size:26px;padding:12px;border-radius:12px;border:2p
     <input type="search" id="q" class="hidden">
   </div>
 </header>
+<div id="upCorner"><button type="button" id="upBtn" aria-label="Upload PDF"><b>&#8593;</b>UPLOAD<br>PDF</button><input type="file" id="upFile" accept="application/pdf,.pdf" multiple hidden></div><div id="upMsg" role="status"></div>
+<script>
+(()=>{const FN='https://ksuvjhutalvwgikvsdeu.supabase.co/functions/v1/upload-sheet',KEY='sb_publishable_v60aHIwkGcr_a9UvWTb9jA_7qcffk8B';
+const btn=document.getElementById('upBtn'),inp=document.getElementById('upFile'),msg=document.getElementById('upMsg');let hideT;
+const say=(t,ms)=>{msg.textContent=t;msg.style.display='block';clearTimeout(hideT);if(ms)hideT=setTimeout(()=>msg.style.display='none',ms)};
+const b64=f=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.onerror=no;r.readAsDataURL(f)});
+const stamp=async()=>{try{const r=await fetch('data/latest.json?t='+Date.now(),{cache:'no-store'});return (await r.json()).updated||''}catch(e){return ''}};
+btn.onclick=()=>inp.click();
+inp.onchange=async()=>{const fs=[...inp.files];inp.value='';if(!fs.length)return;
+  if(fs.some(f=>!/\.pdf$/i.test(f.name)&&f.type!=='application/pdf'))return say('Pick PDF files only (the Deputy driver list / pick sheet).',5000);
+  if(fs.length>4)return say('Up to 4 PDFs at a time.',5000);
+  btn.disabled=true;say('Uploading '+fs.length+' PDF'+(fs.length>1?'s':'')+'…');
+  try{const before=await stamp();const files=await Promise.all(fs.map(async f=>({name:f.name,b64:await b64(f)})));
+    const r=await fetch(FN,{method:'POST',headers:{'Content-Type':'application/json',apikey:KEY,Authorization:'Bearer '+KEY},body:JSON.stringify({files})});
+    const j=await r.json().catch(()=>({}));if(!r.ok||!j.ok)throw new Error(j.error||('error '+r.status));
+    say('Uploaded ✓ Reading the PDFs — the board will refresh by itself in about 2 minutes.');
+    let n=0;const iv=setInterval(async()=>{n++;const now=await stamp();if(now&&now!==before){clearInterval(iv);say('Board updated ✓ Reloading…');setTimeout(()=>location.reload(),1200)}else if(n>=30){clearInterval(iv);say('Uploaded, but the board hasn\'t changed yet. Pull down to refresh in a few minutes.',8000)}},12000);
+  }catch(e){say('Upload failed: '+e.message,8000)}finally{btn.disabled=false}};
+})();
+</script>
 <div id="qrCorner"><button type="button" id="qrBtn" aria-label="Show QR code to share"><img src="data:image/png;base64,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" alt="QR code"></button><div class="ar">&#8593;</div><div class="sl">SHARE</div></div>
 
 <main id="list">
