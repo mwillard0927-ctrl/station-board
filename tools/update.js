@@ -29,6 +29,22 @@ const cut=new Date(date+'T12:00:00Z');cut.setUTCDate(cut.getUTCDate()-14);const 
 let A={DAYS:{},LOAD:{},TOT:{}};if(fs.existsSync('archive.js')){const w={};new Function('window',fs.readFileSync('archive.js','utf8'))(w);A=w.ARCH||A}
 for(const [n,o] of [['DAYS',DAYS],['LOAD',LOAD],['TOT',TOT]])for(const d in o)if(d<CUT){A[n][d]=o[d];delete o[d]}
 fs.writeFileSync('archive.js','window.ARCH='+J(A)+';');
+// Cycle 0 (TX routes) lives on its own board (C0); regular board keeps the rest
+const isC0=r=>/^TX\s*\d+$/.test(r);
+// rescue (R#) drivers on a driver list that has TX routes belong to cycle 0 too
+const c0R=new Set(day.drivers&&day.drivers.rows.some(x=>isC0(x[5]))?day.drivers.rows.filter(x=>/^R\d/.test(x[5])).map(x=>x[1]+'|'+x[5]):[]);
+const rowC0=(l,d0)=>{const x=l.split('|');return isC0(x[5])||(day.drivers&&d0===day.drivers.date&&c0R.has(x[1]+'|'+x[5]))};
+const totOf=M=>{const t=Object.fromEntries(Object.entries(M).map(([k,v])=>[k,v.t]));const ks=Object.keys(t);if(!ks.length)return null;const hi=ks.reduce((a,b)=>t[b]>t[a]?b:a),lo=ks.reduce((a,b)=>t[b]<t[a]?b:a);
+  return {routes:ks.length,pk:ks.reduce((a,k)=>a+t[k],0),bags:Object.values(M).reduce((a,v)=>a+v.b.length,0),of:Object.values(M).reduce((a,v)=>a+v.o.reduce((x,y)=>x+y[1],0),0),comm:Object.values(M).reduce((a,v)=>a+(v.c||0),0),hi:[hi,t[hi]],lo:[lo,t[lo]]}};
+for(const k of ['DAYS','LOAD','TOT','PICK'])C0[k]=C0[k]||{};
+for(const d of Object.keys(DAYS)){const rows=DAYS[d].rows.trim().split('\n').filter(Boolean);const c=rows.filter(l=>rowC0(l,d));if(!c.length)continue;
+  const keep=rows.filter(l=>!rowC0(l,d));const base=DAYS[d].label.split(' · ')[0];
+  const have={};if(C0.DAYS[d])C0.DAYS[d].rows.trim().split('\n').filter(Boolean).forEach(l=>{const x=l.split('|');have[x[1]+'|'+x[5]]=l});c.forEach(l=>{const x=l.split('|');have[x[1]+'|'+x[5]]=l});
+  C0.DAYS[d]={label:base+' · Cycle 0 · 7:30 AM',rows:'\n'+Object.values(have).sort((a,b)=>a.split('|')[1].toLowerCase().localeCompare(b.split('|')[1].toLowerCase())).join('\n')};
+  if(keep.length)DAYS[d].rows='\n'+keep.join('\n');else delete DAYS[d]}
+for(const d of Object.keys(LOAD)){for(const r of Object.keys(LOAD[d]))if(isC0(r)){(C0.LOAD[d]=C0.LOAD[d]||{})[r]=LOAD[d][r];delete LOAD[d][r]}
+  if(C0.LOAD[d])C0.TOT[d]=totOf(C0.LOAD[d]);if(Object.keys(LOAD[d]).length)TOT[d]=totOf(LOAD[d]);else{delete LOAD[d];delete TOT[d]}}
+for(const d of Object.keys(PICK)){for(const r of Object.keys(PICK[d]))if(isC0(r)){(C0.PICK[d]=C0.PICK[d]||{})[r]=PICK[d][r];delete PICK[d][r]}if(!Object.keys(PICK[d]).length)delete PICK[d]}
 put('const DAYS =',daysTxt(DAYS));put('const LOAD =',J(sortObj(LOAD)));put('const TOT =',J(sortObj(TOT)));put('const PICK=',J(sortObj(PICK)));put('const C0=',J(C0));
 fs.writeFileSync('index.html',s);
 // per-day data file for Master and other apps
