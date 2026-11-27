@@ -27,14 +27,18 @@ for p in sys.argv[1:]:
             route=re.sub(r'^([A-Z]+)(\d+)$',r'\1 \2',m.group(1));kind=m.group(2)
             dm=re.search(r'(\w{3}) (\d+), (\d{4})',L[2]);date=date or datetime.date(int(dm.group(3)),MON[dm.group(1)],int(dm.group(2)))
             bags=[];of=[];tot=comm=None
+            bi=[]
             for l in L[3:]:
-                x=re.match(r'\s*(\d+)\s+(?:([A-Z]-[\dA-Z.]+))?\s+([A-Z][a-z]+ \d+)\s+(\d+)',l)
-                rest=l
-                if x: bags.append([x.group(2) or '',x.group(3),int(x.group(4))]);rest=l[x.end():]
+                # bag rows (a long bag list can wrap into the right-hand column, even on header lines)
+                BR=r'(?:^|\s)(\d+)\s+(?:([A-Z]-[\dA-Z.]+))?\s+([A-Z][a-z]+ \d+)\s+(\d+)(?=\s|$)'
+                xs=list(re.finditer(BR,l))
+                for x in xs: bi.append((int(x.group(1)),[x.group(2) or '',x.group(3),int(x.group(4))]))
+                rest=l[xs[0].end():] if xs and xs[0].start()<6 else ('' if xs else l)
                 y=re.match(r'\s+(\d+)\s+([A-Z]-[\dA-Z.]+)\s+(\d+)\s*$',rest)
                 if y: of.append([y.group(2),int(y.group(3))])
                 z=re.search(r'Total Packages\s+(\d+)',l); tot=int(z.group(1)) if z else tot
                 z=re.search(r'Commercial Packages\s+(\d+)',l); comm=int(z.group(1)) if z else comm
+            bags=[b for _,b in sorted(bi,key=lambda z:z[0])]
             if tot is None or sum(v[2] for v in bags)+sum(v[1] for v in of)!=tot:
                 out["errors"].append(f'{route}: bags+overflow != total ({tot})')
             R[route]={"b":bags,"o":of,"k":kind,"t":tot,"c":comm or 0,"stg":stg}
